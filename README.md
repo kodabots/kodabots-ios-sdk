@@ -1,1 +1,20 @@
-kodabots-ios-sdk
+# Koda Bots SDK
+## 1. Installation guide
+- Add ```pod 'KodaBotsSDK'``` into your podfile
+- Add ```KodaBotsSDK``` entry into your Info.plist as dictonary, add key ```clientToken``` and it's value
+- Add ```Privacy - Microphone Usage Description``` with description into your Info.plist
+- Add ```Privacy - Camera Usage Description``` with description into your Info.plist
+- Add ```Privacy - Photo Library Usage Description``` with description into your Info.plist
+## 2. Usage guide
+- Import KodaBotsSDK
+- Invoke ```KodaBotsSDK.shared.initialize()```
+- If previous method returned true, you can then call ```KodaBotsSDK.shared.generateViewController(userProfile:UserProfile?, blockId: String?, backgroundColor: UIColor?, progressColor: UIColor?, customAnimation: Animation?, callbacks:((KodaBotsCallbacks)->Void)?)``` to obtain ViewController which you can insert into your custom view or start as separate view controller
+## 3. Methods overview
+- getUnreadCount
+- sendBlock
+- syncUserProfile
+
+
+
+- Default loader: https://lottiefiles.com/36219-loader
+Thanks to Sinan Özkök, creator of loader
