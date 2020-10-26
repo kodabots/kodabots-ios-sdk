@@ -1,6 +1,6 @@
 # Koda Bots SDK
 ## 1. Installation guide
-- Add ```pod 'KodaBotsSDK'``` into your podfile
+- Add ```pod 'KodaBotsSDK', :git => 'https://github.com/kodabots/kodabots-ios-sdk.git', :branch => 'master'``` into your podfile
 - Add ```KodaBotsSDK``` entry into your Info.plist as dictonary, add key ```clientToken``` and it's value
 - Add ```Privacy - Microphone Usage Description``` with description into your Info.plist
 - Add ```Privacy - Camera Usage Description``` with description into your Info.plist
