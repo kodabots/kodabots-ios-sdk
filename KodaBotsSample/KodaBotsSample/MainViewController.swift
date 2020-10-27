@@ -63,7 +63,7 @@ class MainViewController: UIViewController {
                     let profile = UserProfile()
                     profile.first_name = alert?.textFields![0].text
                     profile.last_name = alert?.textFields![1].text
-                    profile.custom_key = alert?.textFields![2].text
+                    profile.custom_parameters["custom_key"] =  alert?.textFields![2].text
                     if self.kodaBotsWebView!.syncUserProfile(profile: profile) == false{
                         self.showToast("INITIALIZE WEBVIEW")
                     }
