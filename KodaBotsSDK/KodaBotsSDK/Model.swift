@@ -12,7 +12,6 @@ public class UserProfile:NSObject, Codable {
     public var first_name:String?
     public var last_name:String?
     public var email:String?
-    public var custom_key:String?
     public var os: String?
     public var os_version: String?
     public var webview_user_agent: String?
