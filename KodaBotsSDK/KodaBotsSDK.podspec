@@ -18,6 +18,6 @@ Pod::Spec.new do |spec|
 	'KodaBotsSDK' => ['KodaBotsSDK/**/*.{xib,storyboard,json,png,xcasset}']
   }
   spec.ios.framework  = 'WebKit'
-  spec.dependency 'lottie-ios'
+  spec.dependency 'lottie-ios', '~> 3.1.8'
 
 end
