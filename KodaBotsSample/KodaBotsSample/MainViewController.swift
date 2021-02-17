@@ -12,6 +12,8 @@ import KodaBotsSDK
 class MainViewController: UIViewController {
     @IBOutlet weak var controllsButton: UIButton!
     @IBOutlet weak var webViewContainer: UIView!
+    @IBOutlet weak var test: UILabel!
+    
     var kodaBotsWebView:KodaBotsWebViewViewController?
     var callbacks:(KodaBotsCallbacks)->Void = { callback in
         switch callback {

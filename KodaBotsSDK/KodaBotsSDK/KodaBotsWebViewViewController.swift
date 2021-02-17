@@ -79,9 +79,9 @@ public class KodaBotsWebViewViewController: UIViewController {
         webView.allowsInlineMediaPlayback = true
         webView.mediaPlaybackRequiresUserAction = false
         
-        requestCameraPermission(completion: { granted in
+        //requestCameraPermission(completion: { granted in
             self.loadURL()
-        })
+        //})
     }
     
     func loadURL(){
