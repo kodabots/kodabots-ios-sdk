@@ -8,7 +8,7 @@
 ## 2. Usage guide
 - Import KodaBotsSDK
 - Invoke ```KodaBotsSDK.shared.initialize()```
-- If previous method returned true, you can then call ```KodaBotsSDK.shared.generateViewController(userProfile:UserProfile?, blockId: String?, backgroundColor: UIColor?, progressColor: UIColor?, customAnimation: Animation?, callbacks:((KodaBotsCallbacks)->Void)?)``` to obtain ViewController which you can insert into your custom view or start as separate view controller
+- If previous method returned true, you can then call ```KodaBotsSDK.shared.generateViewController(config:KodaBotsConfig?, callbacks:((KodaBotsCallbacks)->Void)?)``` to obtain ViewController which you can insert into your custom view or start as separate view controller
 ## 3. Methods overview
 - getUnreadCount
 - sendBlock

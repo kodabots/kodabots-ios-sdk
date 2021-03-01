@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import WebKit
 import Lottie
 
 public final class KodaBotsSDK {
@@ -31,8 +32,8 @@ public final class KodaBotsSDK {
     }
     
     internal func gatherPhoneData(userProfile:UserProfile?)-> UserProfile?{
-        let webview = UIWebView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
-        let userAgentString = webview.stringByEvaluatingJavaScript(from: "navigator.userAgent")
+        let webview = WKWebView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
+        let userAgentString = webview.value(forKey: "userAgent") as! String
         var systemVersion = UIDevice.current.systemVersion
         let modelName = UIDevice.modelName
         let language = Bundle.main.preferredLocalizations.first as! NSString
@@ -60,14 +61,10 @@ public final class KodaBotsSDK {
         }
     }
     
-    public func generateViewController(userProfile:UserProfile?, blockId:String?, backgroundColor:UIColor?, progressColor:UIColor?, customAnimation:Animation?, callbacks:((KodaBotsCallbacks)->Void)?)->KodaBotsWebViewViewController?{
+    public func generateViewController(config:KodaBotsConfig?, callbacks:((KodaBotsCallbacks)->Void)?)->KodaBotsWebViewViewController?{
         if isInitialized {
             let viewController = KodaBotsWebViewViewController(nibName: "KodaBotsWebViewViewController", bundle: getPodBundle())
-            viewController.backgroundColor = backgroundColor
-            viewController.progressColor = progressColor
-            viewController.userProfile = userProfile ?? UserProfile()
-            viewController.blockId = blockId
-            viewController.customAnimation = customAnimation
+            viewController.customConfig = config
             if callbacks != nil {
                 viewController.callbacks = callbacks!
             }

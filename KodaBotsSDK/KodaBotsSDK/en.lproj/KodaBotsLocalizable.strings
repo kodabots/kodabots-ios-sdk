@@ -1,0 +1,9 @@
+/* 
+  KodaBotsDefaultStrings.strings
+  KodaBotsSDK
+
+  Created by Felislynx.Silae on 25/02/2021.
+  Copyright © 2021 KodaBots. All rights reserved.
+*/
+"went_wrong_message" = "Meh. Something went wrong.";
+"went_wrong_button" = "Retry";

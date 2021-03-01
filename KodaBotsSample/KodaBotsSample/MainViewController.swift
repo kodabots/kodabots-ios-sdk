@@ -119,7 +119,11 @@ class MainViewController: UIViewController {
     
     func initializeWebview(){
         DispatchQueue.main.async {
-            if let viewController = KodaBotsSDK.shared.generateViewController(userProfile: nil, blockId: nil, backgroundColor: UIColor.white, progressColor: UIColor.red, customAnimation: nil, callbacks: self.callbacks) {
+            let config = KodaBotsConfig()
+            config.progressConfig = KodaBotsProgressConfig()
+            config.progressConfig?.backgroundColor = UIColor.white
+            config.progressConfig?.progressColor = UIColor.red
+            if let viewController = KodaBotsSDK.shared.generateViewController(config:config, callbacks: self.callbacks) {
                 self.kodaBotsWebView = viewController
                 self.webViewContainer.addSubview(viewController.view)
                 self.addChild(viewController)

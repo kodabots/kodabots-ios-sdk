@@ -2,7 +2,7 @@
 Pod::Spec.new do |spec|
 
   spec.name          = "KodaBotsSDK"
-  spec.version       = "1.0.1"
+  spec.version       = "1.0.2"
   spec.summary       = "SDK for KODA Bots"
   spec.description   = "SDK for KODA Bots for iOS"
   spec.homepage      = "https://kodabots.com/"
@@ -13,9 +13,9 @@ Pod::Spec.new do |spec|
 
   spec.source              = { :path => "." }
   spec.source_files = "KodaBotsSDK/KodaBotsSDK/**/*.{h,m,swift}"
-  spec.resources = "KodaBotsSDK/KodaBotsSDK/**/*.{xib,storyboard,json,png,xcasset}"
+  spec.resources = "KodaBotsSDK/KodaBotsSDK/**/*.{xib,storyboard,json,png,xcassets,strings}"
   spec.resource_bundles = {
-	'KodaBotsSDK' => ['KodaBotsSDK/KodaBotsSDK/**/*.{xib,storyboard,json,png,xcasset}']
+	'KodaBotsSDK' => ['KodaBotsSDK/KodaBotsSDK/**/*.{xib,storyboard,json,png,xcassets,strings}']
   }
   spec.ios.framework  = 'WebKit'
   spec.dependency 'lottie-ios', '~> 3.1.8'

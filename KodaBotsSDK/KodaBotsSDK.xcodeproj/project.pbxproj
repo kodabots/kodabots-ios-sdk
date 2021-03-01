@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		4756D4C5C72C027428D846DF /* Pods_KodaBotsSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A595D3EAB703E664D9628C1 /* Pods_KodaBotsSDK.framework */; };
 		FD6E944925395DB100BC0A04 /* KodaBotsRestApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6E944825395DB100BC0A04 /* KodaBotsRestApi.swift */; };
+		FD73001725E770C5005DBB27 /* KodaBotsConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD73001625E770C5005DBB27 /* KodaBotsConfig.swift */; };
+		FD73002125E77904005DBB27 /* KodaBotsLocalizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = FD73002325E77904005DBB27 /* KodaBotsLocalizable.strings */; };
+		FD73004725E7940E005DBB27 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD73004625E7940E005DBB27 /* Assets.xcassets */; };
 		FD9865AA2530741F001EFE54 /* KodaBotsSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9865A92530741F001EFE54 /* KodaBotsSDK.swift */; };
 		FD9865AC25307468001EFE54 /* KodaBotsPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9865AB25307468001EFE54 /* KodaBotsPreferences.swift */; };
 		FD9865AF25307567001EFE54 /* KodaBotsWebViewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9865AD25307567001EFE54 /* KodaBotsWebViewViewController.swift */; };
@@ -25,6 +28,10 @@
 		5A595D3EAB703E664D9628C1 /* Pods_KodaBotsSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KodaBotsSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D0642445B98E0578C493484 /* Pods-KodaBotsSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KodaBotsSDK.debug.xcconfig"; path = "Target Support Files/Pods-KodaBotsSDK/Pods-KodaBotsSDK.debug.xcconfig"; sourceTree = "<group>"; };
 		FD6E944825395DB100BC0A04 /* KodaBotsRestApi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodaBotsRestApi.swift; sourceTree = "<group>"; };
+		FD73001625E770C5005DBB27 /* KodaBotsConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodaBotsConfig.swift; sourceTree = "<group>"; };
+		FD73002225E77904005DBB27 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/KodaBotsLocalizable.strings; sourceTree = "<group>"; };
+		FD73002525E77918005DBB27 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/KodaBotsLocalizable.strings; sourceTree = "<group>"; };
+		FD73004625E7940E005DBB27 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FD9865A92530741F001EFE54 /* KodaBotsSDK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodaBotsSDK.swift; sourceTree = "<group>"; };
 		FD9865AB25307468001EFE54 /* KodaBotsPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodaBotsPreferences.swift; sourceTree = "<group>"; };
 		FD9865AD25307567001EFE54 /* KodaBotsWebViewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodaBotsWebViewViewController.swift; sourceTree = "<group>"; };
@@ -98,6 +105,7 @@
 			children = (
 				FDA9A0E325415514000D85FE /* LOTTIE */,
 				FDED36E1253415E00046DBF6 /* CONFIGS */,
+				FD73004625E7940E005DBB27 /* Assets.xcassets */,
 				FDDDA620253062950064D946 /* KodaBotsSDK.h */,
 				FDDDA621253062950064D946 /* Info.plist */,
 				FD9865A92530741F001EFE54 /* KodaBotsSDK.swift */,
@@ -107,6 +115,8 @@
 				FD9865B12530759A001EFE54 /* Model.swift */,
 				FDA6EE8D2536B5DF008BA6D6 /* Extensions.swift */,
 				FD6E944825395DB100BC0A04 /* KodaBotsRestApi.swift */,
+				FD73001625E770C5005DBB27 /* KodaBotsConfig.swift */,
+				FD73002325E77904005DBB27 /* KodaBotsLocalizable.strings */,
 			);
 			path = KodaBotsSDK;
 			sourceTree = "<group>";
@@ -182,6 +192,7 @@
 			knownRegions = (
 				en,
 				Base,
+				pl,
 			);
 			mainGroup = FDDDA613253062950064D946;
 			productRefGroup = FDDDA61E253062950064D946 /* Products */;
@@ -200,6 +211,8 @@
 			files = (
 				FDA9A0E525415528000D85FE /* default_loader.json in Resources */,
 				FD9865B025307567001EFE54 /* KodaBotsWebViewViewController.xib in Resources */,
+				FD73004725E7940E005DBB27 /* Assets.xcassets in Resources */,
+				FD73002125E77904005DBB27 /* KodaBotsLocalizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +252,7 @@
 				FDA6EE8E2536B5DF008BA6D6 /* Extensions.swift in Sources */,
 				FD9865AC25307468001EFE54 /* KodaBotsPreferences.swift in Sources */,
 				FD6E944925395DB100BC0A04 /* KodaBotsRestApi.swift in Sources */,
+				FD73001725E770C5005DBB27 /* KodaBotsConfig.swift in Sources */,
 				FDED36E4253415F80046DBF6 /* Config.swift in Sources */,
 				FD9865AF25307567001EFE54 /* KodaBotsWebViewViewController.swift in Sources */,
 				FD9865B22530759A001EFE54 /* Model.swift in Sources */,
@@ -247,11 +261,24 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXVariantGroup section */
+		FD73002325E77904005DBB27 /* KodaBotsLocalizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FD73002225E77904005DBB27 /* en */,
+				FD73002525E77918005DBB27 /* pl */,
+			);
+			name = KodaBotsLocalizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
 		FDDDA623253062950064D946 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -315,6 +342,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
