@@ -60,10 +60,9 @@ public class KodaBotsWebViewViewController: UIViewController {
         setupProgress()
         setupWentWrong()
         
-        URLCache.shared.removeAllCachedResponses()
-        URLCache.shared.diskCapacity = 0
-        URLCache.shared.memoryCapacity = 0
-        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+        let websiteDataTypes = NSSet(array: [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache])
+        let date = Date(timeIntervalSince1970: 0)
+        WKWebsiteDataStore.default().removeData(ofTypes: websiteDataTypes as! Set<String>, modifiedSince: date, completionHandler:{ })
         
 //        let userContentController = WKUserContentController()
         webView.configuration.userContentController.add(self, name: "onReady")
@@ -250,7 +249,6 @@ public class KodaBotsWebViewViewController: UIViewController {
         } else {
             webView.callJavascript(data: "KodaBots.initialize(null,null);")
         }
-        DispatchQueue.main.asyncAfter(deadline: .now()+(customConfig?.timeoutConfig?.timeout ?? WENT_WRONG_TIMEOUT), execute:wentWrongTask!)
     }
     
     private func showWentWrong(){
@@ -324,6 +322,8 @@ extension KodaBotsWebViewViewController: WKNavigationDelegate {
             self.loaderWrapper.isHidden = false
             self.loaderIndicator.play()
         }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now()+(customConfig?.timeoutConfig?.timeout ?? WENT_WRONG_TIMEOUT), execute:wentWrongTask!)
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
