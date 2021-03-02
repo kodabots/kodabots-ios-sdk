@@ -142,6 +142,9 @@ public class KodaBotsWebViewViewController: UIViewController {
             let newFont = UIFont(name: (wentWrongLabel.font?.fontName)!, size: CGFloat(customMessageFontSize))
             wentWrongLabel.font = newFont
         }
+        if let customMessageColor = customConfig?.timeoutConfig?.messageTextColor {
+            wentWrongLabel.textColor = customMessageColor
+        }
     }
     
     @objc
