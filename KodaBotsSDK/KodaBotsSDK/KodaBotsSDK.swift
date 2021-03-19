@@ -17,6 +17,12 @@ public final class KodaBotsSDK {
     public static let shared = KodaBotsSDK()
     private init(){}
     
+    /**
+     * Method used to initialize SDK.
+     * Fetches ClientToken from plits file.
+     *
+     * returns: Boolean value that indicates init state
+     */
     public func initialize()-> Bool {
         let plist = Bundle.main.object(forInfoDictionaryKey: "KodaBotsSDK") as! [String:Any]
         if let plistClientToken = plist["clientToken"] {
@@ -27,6 +33,10 @@ public final class KodaBotsSDK {
             return false
         }
     }
+    
+    /**
+     * Method used to uninitialize SDK.
+     */
     public func uninitialize() {
         isInitialized = false
     }
@@ -47,6 +57,11 @@ public final class KodaBotsSDK {
         return userProfile
     }
     
+    /**
+     * Method used to get unread messages count
+     *
+     * parameter callback: Callback that returns enum class with result
+     */
     public func getUnreadCount(callback:@escaping ((CallResponse)->Void)) {
         if clientToken != nil && KodaBotsPreferences.shared.getUserId() != nil {
             KodaBotsRestApi.shared.getUnreadCount(onResponse: { response, errorType, errorMessage in
@@ -61,6 +76,13 @@ public final class KodaBotsSDK {
         }
     }
     
+    /**
+     * If SDK is initialized, will return KodaBotsWebViewViewController that you can display and use.
+     *
+     * parameter config: Configuration file for SDK. You can set userProfile, conversation blockId and progress/timeout ui customisation
+     * parameter callbacks: Callbacks from KodaBots chatbot
+     * returns: KodaBotsWebViewController
+     */
     public func generateViewController(config:KodaBotsConfig?, callbacks:((KodaBotsCallbacks)->Void)?)->KodaBotsWebViewViewController?{
         if isInitialized {
             let viewController = KodaBotsWebViewViewController(nibName: "KodaBotsWebViewViewController", bundle: getPodBundle())

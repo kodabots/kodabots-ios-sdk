@@ -18,6 +18,9 @@ public class UserProfile:NSObject, Codable {
     public var locale: String?
     public var model: String?
     public var manufacturer: String?
+    /**
+        Parameter used to pass custom data to KodaBots chatbot
+     */
     public var custom_parameters: [String:String] = [:]
 }
 

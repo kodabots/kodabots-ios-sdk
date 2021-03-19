@@ -190,6 +190,12 @@ public class KodaBotsWebViewViewController: UIViewController {
         }
     }
     
+    /**
+     * Method used to send conversation blockId
+     *
+     * parameter blockId: Conversation block id
+     * returns: true if invoked
+     */
     public func sendBlock(blockId: String)-> Bool{
         if isReady {
             webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
@@ -199,6 +205,12 @@ public class KodaBotsWebViewViewController: UIViewController {
         }
     }
     
+    /**
+     * Method used to set new user profile
+     *
+     * parameter userProfile: new user profile
+     * returns: true if invoked
+     */
     public func syncUserProfile(profile: UserProfile)->Bool {
         if isReady {
             do {
@@ -216,6 +228,11 @@ public class KodaBotsWebViewViewController: UIViewController {
         }
     }
     
+    /**
+     * Method used to simulate error
+     *
+     * returns: true if invoked
+     */
     public func simulateError()->Bool {
         if isReady {
             webView.callJavascript(data: "KodaBots.simulateError();")

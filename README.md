@@ -10,9 +10,9 @@
 - Invoke ```KodaBotsSDK.shared.initialize()```
 - If previous method returned true, you can then call ```KodaBotsSDK.shared.generateViewController(config:KodaBotsConfig?, callbacks:((KodaBotsCallbacks)->Void)?)``` to obtain ViewController which you can insert into your custom view or start as separate view controller
 ## 3. Methods overview
-- getUnreadCount
-- sendBlock
-- syncUserProfile
+- getUnreadCount is available without initialization of webview, inside ```KodaBotsSDK```, returns unread count of messages
+- sendBlock is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
+- syncUserProfile is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
 
 
 
