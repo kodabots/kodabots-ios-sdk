@@ -17,7 +17,7 @@ Pod::Spec.new do |spec|
   spec.resource_bundles = {
 	  'KodaBotsSDK' => ['KodaBotsSDK/KodaBotsSDK/**/*.{xib,storyboard,json,png,xcassets,strings}']
   }
-  x
+  
   spec.ios.framework    = 'WebKit'
   spec.dependency 'lottie-ios', '~> 3.4.3'
 
