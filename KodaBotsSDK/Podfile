@@ -9,6 +9,6 @@ inhibit_all_warnings!
 
 target 'KodaBotsSDK' do
   
- pod 'lottie-ios', '~> 3.1.8' 
+ pod 'lottie-ios', '~> 3.5' 
 
 end
