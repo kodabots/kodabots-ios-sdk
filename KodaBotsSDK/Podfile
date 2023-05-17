@@ -3,12 +3,11 @@ platform :ios, '11.0'
 swift_version = "5"
 
 use_frameworks!
-enable_bitcode_for_prebuilt_frameworks!
 inhibit_all_warnings!
 
 
 target 'KodaBotsSDK' do
   
- pod 'lottie-ios', '~> 3.5' 
+ pod 'lottie-ios', '~> 4.2' 
 
 end

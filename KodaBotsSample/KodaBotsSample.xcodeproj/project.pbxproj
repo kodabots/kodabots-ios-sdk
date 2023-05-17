@@ -11,7 +11,6 @@
 		FDDA0645253062040010DDF7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDA0644253062040010DDF7 /* AppDelegate.swift */; };
 		FDDA064E253062050010DDF7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FDDA064D253062050010DDF7 /* Assets.xcassets */; };
 		FDDA0651253062050010DDF7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FDDA064F253062050010DDF7 /* LaunchScreen.storyboard */; };
-		FDDDA62925306C7D0064D946 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FDDDA62825306C7D0064D946 /* GoogleService-Info.plist */; };
 		FDED36D8253407B10046DBF6 /* RootCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDED36D7253407B10046DBF6 /* RootCoordinator.swift */; };
 		FDED36DA253407F30046DBF6 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDED36D9253407F30046DBF6 /* Coordinator.swift */; };
 		FDED36DC2534084B0046DBF6 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDED36DB2534084B0046DBF6 /* MainCoordinator.swift */; };
@@ -28,7 +27,6 @@
 		FDDA064D253062050010DDF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FDDA0650253062050010DDF7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FDDA0652253062050010DDF7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FDDDA62825306C7D0064D946 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		FDED36D7253407B10046DBF6 /* RootCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootCoordinator.swift; sourceTree = "<group>"; };
 		FDED36D9253407F30046DBF6 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		FDED36DB2534084B0046DBF6 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
@@ -86,7 +84,6 @@
 		FDDA0643253062040010DDF7 /* KodaBotsSample */ = {
 			isa = PBXGroup;
 			children = (
-				FDDDA62825306C7D0064D946 /* GoogleService-Info.plist */,
 				FDDA0644253062040010DDF7 /* AppDelegate.swift */,
 				FDDA064D253062050010DDF7 /* Assets.xcassets */,
 				FDDA064F253062050010DDF7 /* LaunchScreen.storyboard */,
@@ -112,6 +109,7 @@
 				FDDA063E253062040010DDF7 /* Frameworks */,
 				FDDA063F253062040010DDF7 /* Resources */,
 				8B3B7A51DE09013826170FA4 /* [CP] Embed Pods Frameworks */,
+				BC168F902A047B4883E957BF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -161,7 +159,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FDDA0651253062050010DDF7 /* LaunchScreen.storyboard in Resources */,
-				FDDDA62925306C7D0064D946 /* GoogleService-Info.plist in Resources */,
 				FDED36E02534087B0046DBF6 /* MainViewController.xib in Resources */,
 				FDDA064E253062050010DDF7 /* Assets.xcassets in Resources */,
 			);
@@ -207,6 +204,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KodaBotsSample/Pods-KodaBotsSample-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BC168F902A047B4883E957BF /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KodaBotsSample/Pods-KodaBotsSample-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KodaBotsSample/Pods-KodaBotsSample-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KodaBotsSample/Pods-KodaBotsSample-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
