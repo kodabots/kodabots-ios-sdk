@@ -3,7 +3,6 @@ platform :ios, '11.0'
 swift_version = "5"
 
 use_frameworks!
-enable_bitcode_for_prebuilt_frameworks!
 inhibit_all_warnings!
 
 

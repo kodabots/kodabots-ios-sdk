@@ -21,7 +21,7 @@ public class KodaBotsProgressConfig {
     public init() {}
     public var backgroundColor:UIColor?
     public var progressColor:UIColor?
-    public var customAnimation: Animation?
+    public var customAnimation: LottieAnimation?
 }
 
 public class KodaBotsTimedOutConfig {

@@ -35,6 +35,19 @@ public final class KodaBotsSDK {
     }
     
     /**
+     * Method used to initialize SDK.
+     *
+     * parameter clientToken: String with client token.
+     * returns: Boolean value that indicates init state
+     */
+    public func initialize(clientToken: String) -> Bool {
+        self.clientToken = clientToken
+        isInitialized = true
+        
+        return true
+    }
+    
+    /**
      * Method used to uninitialize SDK.
      */
     public func uninitialize() {
