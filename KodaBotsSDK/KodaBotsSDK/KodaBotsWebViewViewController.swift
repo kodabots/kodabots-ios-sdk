@@ -15,7 +15,7 @@ import Lottie
 public class KodaBotsWebViewViewController: UIViewController {
     @IBOutlet weak var webView: WKWebView!
     @IBOutlet weak var loaderWrapper: UIView!
-    @IBOutlet weak var loaderIndicator: AnimationView!
+    @IBOutlet weak var loaderIndicator: LottieAnimationView!
     @IBOutlet weak var wentWrongWrapper: UIView!
     @IBOutlet weak var wentWrongImage: UIImageView!
     @IBOutlet weak var wentWrongLabel: UILabel!
@@ -84,7 +84,7 @@ public class KodaBotsWebViewViewController: UIViewController {
         if customConfig?.progressConfig?.customAnimation == nil {
             let path = Bundle(for: KodaBotsWebViewViewController.classForCoder()).path(forResource: "default_loader",
                                                                                        ofType: "json") ?? ""
-            let animation = Animation.filepath(path)
+            let animation = LottieAnimation.filepath(path)
             loaderIndicator.animation = animation
             if let pc = customConfig?.progressConfig?.progressColor {
                 loaderIndicator.setValueProvider(ColorValueProvider(pc.lottieColorValue), keypath: AnimationKeypath(keypath: "**.Color"))
