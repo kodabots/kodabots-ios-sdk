@@ -26,7 +26,8 @@ public class KodaBotsWebViewViewController: UIViewController {
     var callbacks:(KodaBotsCallbacks)->Void = {_ in}
     private var isReady = false
     private var wentWrongTask:DispatchWorkItem?
-    
+    private var nextBlockId: String?
+
     public override func viewDidLoad() {
         super.viewDidLoad()
         wentWrongTask = DispatchWorkItem {
@@ -204,7 +205,26 @@ public class KodaBotsWebViewViewController: UIViewController {
             return false
         }
     }
-    
+
+    /**
+     * Method used to send conversation token with received nextBlockId
+     *
+     * parameter token: Conversation token
+     * returns: true if invoked
+     */
+    public func sendBlock(token: String)-> Bool {
+        if isReady {
+            guard let nextBlockId else {
+                webView.callJavascript(data: "KodaBots.sentBlock(\"\(token)\");")
+                return true
+            }
+            webView.callJavascript(data: "KodaBots.sentBlock(\"\(nextBlockId)\", { token: \"\(token)\" })")
+            return true
+        } else {
+            return false
+        }
+    }
+
     /**
      * Method used to set new user profile
      *
@@ -304,6 +324,11 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandler {
                             eventType: (eventType as? String) ?? "",
                             params: (params as? [String:String]) ?? [:]
                         ))
+                    if eventType as? String == EventKeys.customGenerateToken {
+                        guard let params = params as? [String : String] else { return }
+                        guard let nextBlockId = params[ParamKeys.nextBlockId] else { return }
+                        self.nextBlockId = nextBlockId
+                    }
                 } else {
                     print("KodaBotsSDK message handler -> property 'eventType' or 'params' missing")
                 }
@@ -396,4 +421,12 @@ extension String {
     var localized: String {
         return NSLocalizedString(self, tableName: "KodaBotsLocalizable", bundle: Bundle(for: KodaBotsWebViewViewController.classForCoder()), value: "", comment: "")
     }
+}
+
+enum ParamKeys {
+    static let nextBlockId = "next_block_id"
+}
+
+enum EventKeys {
+    static let customGenerateToken = "web.chatbot.chat.custom.generate_token"
 }

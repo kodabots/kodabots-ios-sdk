@@ -90,6 +90,21 @@ class MainViewController: UIViewController {
             }))
             self.present(alert, animated: true, completion: nil)
         }
+        let sendBlockWithNextBlockIDAction = UIAlertAction(title: NSLocalizedString("SET BLOCK TOKEN (with nextBlockID)", comment: ""), style: .default){ (action) in
+            let alert = UIAlertController(title: "Set token", message: "", preferredStyle: .alert)
+            alert.addTextField { (textField) in
+            }
+            alert.addAction(UIAlertAction(title: "Send", style: .default, handler: { [weak alert] (_) in
+                if self.kodaBotsWebView != nil {
+                    if !self.kodaBotsWebView!.sendBlock(token: alert?.textFields![0].text! ?? "") {
+                        self.showToast("INITIALIZE WEBVIEW")
+                    }
+                } else {
+                    self.showToast("INITIALIZE WEBVIEW")
+                }
+            }))
+            self.present(alert, animated: true, completion: nil)
+        }
         let simulateAlertAction = UIAlertAction(title: NSLocalizedString("SIMULATE ERROR", comment: ""), style: .default){ (action) in
             if self.kodaBotsWebView != nil {
                 if self.kodaBotsWebView!.simulateError() == false{
@@ -103,6 +118,7 @@ class MainViewController: UIViewController {
         optionMenu.addAction(getUnreadCountAction)
         optionMenu.addAction(syncProfileAction)
         optionMenu.addAction(sendBlockAction)
+        optionMenu.addAction(sendBlockWithNextBlockIDAction)
         optionMenu.addAction(simulateAlertAction)
         present(optionMenu, animated: true, completion: nil)
     }
