@@ -99,7 +99,7 @@ class MainViewController: UIViewController {
                             if let paramKey, let paramValue {
                                 params = [paramKey: paramValue]
                             }
-                            if self.kodaBotsWebView!.sendBlock(blockId: alert?.textFields![0].text! ?? "", params: params) == false {
+                            if !self.kodaBotsWebView!.sendBlock(blockId: blockID, params: params) {
                                 self.showToast("INITIALIZE WEBVIEW")
                             }
                         } else {
