@@ -81,10 +81,10 @@ class MainViewController: UIViewController {
                 textField.placeholder = "Block ID"
             }
             alert.addTextField { (textField) in
-                textField.placeholder = "Param Key"
+                textField.placeholder = "Param Key (Optional)"
             }
             alert.addTextField { (textField) in
-                textField.placeholder = "Param Value"
+                textField.placeholder = "Param Value (Optional)"
             }
             alert.addAction(
                 UIAlertAction(
@@ -95,9 +95,12 @@ class MainViewController: UIViewController {
                             let blockID = alert?.textFields?[0].text ?? ""
                             let paramKey = alert?.textFields?[1].text
                             let paramValue = alert?.textFields?[2].text
-                            var params: [String: Any]? = nil
-                            if let paramKey, let paramValue {
-                                params = [paramKey: paramValue]
+                            var params: [String:String]? = nil
+                            if
+                                let paramKey, !paramKey.isEmpty,
+                                let paramValue, !paramValue.isEmpty
+                            {
+                                params = [paramKey:paramValue]
                             }
                             if !self.kodaBotsWebView!.sendBlock(blockId: blockID, params: params) {
                                 self.showToast("INITIALIZE WEBVIEW")

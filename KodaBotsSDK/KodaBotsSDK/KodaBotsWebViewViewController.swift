@@ -191,27 +191,27 @@ public class KodaBotsWebViewViewController: UIViewController {
     }
     
     /**
-     * Method used to send conversation blockId
+     * Sends the conversation block ID along with optional custom parameters.
      *
-     * parameter blockId: Conversation block id
-     * parameter params: Custom params added to request
-     * returns: true if invoked
+     * - Parameters:
+     *   - blockId: The ID of the conversation block.
+     *   - params: Optional custom parameters to include in the request.
+     * - Returns: `true` if the method was successfully invoked.
      */
-    public func sendBlock(blockId: String, params: [String:Any]? = nil)-> Bool {
-        if isReady {
-            if let jsonParams = try? JSONSerialization.data(withJSONObject: params, options: []) {
-                if let encodedParams = String(data: jsonParams, encoding: .utf8) {
-                    webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\",\(encodedParams));")
-                } else {
-                    webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
-                }
-            } else {
-                webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
-            }
+    public func sendBlock(blockId: String, params: [String:String]? = nil) -> Bool {
+        guard isReady else { return false }
+        guard let params, !params.isEmpty else {
+            webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
             return true
-        } else {
+        }
+        guard
+            let jsonData = try? JSONSerialization.data(withJSONObject: params, options: []),
+            let encodedParams = String(data: jsonData, encoding: .utf8)
+        else {
             return false
         }
+        webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\",\(encodedParams));")
+        return true
     }
 
     /**
