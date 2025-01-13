@@ -78,31 +78,36 @@ class MainViewController: UIViewController {
         let sendBlockAction = UIAlertAction(title: NSLocalizedString("SET BLOCK ID", comment: ""), style: .default){ (action) in
             let alert = UIAlertController(title: "Set blockId", message: "", preferredStyle: .alert)
             alert.addTextField { (textField) in
+                textField.placeholder = "Block ID"
             }
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] (_) in
-                if self.kodaBotsWebView != nil {
-                    if self.kodaBotsWebView!.sendBlock(blockId: alert?.textFields![0].text! ?? "") == false{
-                        self.showToast("INITIALIZE WEBVIEW")
-                    }
-                } else {
-                    self.showToast("INITIALIZE WEBVIEW")
-                }
-            }))
-            self.present(alert, animated: true, completion: nil)
-        }
-        let sendBlockWithNextBlockIDAction = UIAlertAction(title: NSLocalizedString("SET BLOCK TOKEN (with nextBlockID)", comment: ""), style: .default){ (action) in
-            let alert = UIAlertController(title: "Set token", message: "", preferredStyle: .alert)
             alert.addTextField { (textField) in
+                textField.placeholder = "Param Key"
             }
-            alert.addAction(UIAlertAction(title: "Send", style: .default, handler: { [weak alert] (_) in
-                if self.kodaBotsWebView != nil {
-                    if !self.kodaBotsWebView!.sendBlock(token: alert?.textFields![0].text! ?? "") {
-                        self.showToast("INITIALIZE WEBVIEW")
+            alert.addTextField { (textField) in
+                textField.placeholder = "Param Value"
+            }
+            alert.addAction(
+                UIAlertAction(
+                    title: "OK",
+                    style: .default,
+                    handler: { [weak alert] (_) in
+                        if self.kodaBotsWebView != nil {
+                            let blockID = alert?.textFields?[0].text ?? ""
+                            let paramKey = alert?.textFields?[1].text
+                            let paramValue = alert?.textFields?[2].text
+                            var params: [String: Any]? = nil
+                            if let paramKey, let paramValue {
+                                params = [paramKey: paramValue]
+                            }
+                            if self.kodaBotsWebView!.sendBlock(blockId: alert?.textFields![0].text! ?? "", params: params) == false {
+                                self.showToast("INITIALIZE WEBVIEW")
+                            }
+                        } else {
+                            self.showToast("INITIALIZE WEBVIEW")
+                        }
                     }
-                } else {
-                    self.showToast("INITIALIZE WEBVIEW")
-                }
-            }))
+                )
+            )
             self.present(alert, animated: true, completion: nil)
         }
         let simulateAlertAction = UIAlertAction(title: NSLocalizedString("SIMULATE ERROR", comment: ""), style: .default){ (action) in
@@ -118,7 +123,6 @@ class MainViewController: UIViewController {
         optionMenu.addAction(getUnreadCountAction)
         optionMenu.addAction(syncProfileAction)
         optionMenu.addAction(sendBlockAction)
-        optionMenu.addAction(sendBlockWithNextBlockIDAction)
         optionMenu.addAction(simulateAlertAction)
         present(optionMenu, animated: true, completion: nil)
     }

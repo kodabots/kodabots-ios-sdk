@@ -20,13 +20,12 @@ public class KodaBotsWebViewViewController: UIViewController {
     @IBOutlet weak var wentWrongImage: UIImageView!
     @IBOutlet weak var wentWrongLabel: UILabel!
     @IBOutlet weak var wentWrongButton: UIButton!
-    
+
     private let WENT_WRONG_TIMEOUT = DispatchTimeInterval.seconds(20)
     var customConfig:KodaBotsConfig?
     var callbacks:(KodaBotsCallbacks)->Void = {_ in}
     private var isReady = false
     private var wentWrongTask:DispatchWorkItem?
-    private var nextBlockId: String?
 
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -195,30 +194,20 @@ public class KodaBotsWebViewViewController: UIViewController {
      * Method used to send conversation blockId
      *
      * parameter blockId: Conversation block id
+     * parameter params: Custom params added to request
      * returns: true if invoked
      */
-    public func sendBlock(blockId: String)-> Bool{
+    public func sendBlock(blockId: String, params: [String:Any]? = nil)-> Bool {
         if isReady {
-            webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
-            return true
-        } else {
-            return false
-        }
-    }
-
-    /**
-     * Method used to send conversation token with received nextBlockId
-     *
-     * parameter token: Conversation token
-     * returns: true if invoked
-     */
-    public func sendBlock(token: String)-> Bool {
-        if isReady {
-            guard let nextBlockId else {
-                webView.callJavascript(data: "KodaBots.sentBlock(\"\(token)\");")
-                return true
+            if let jsonParams = try? JSONSerialization.data(withJSONObject: params, options: []) {
+                if let encodedParams = String(data: jsonParams, encoding: .utf8) {
+                    webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\",\(encodedParams));")
+                } else {
+                    webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
+                }
+            } else {
+                webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
             }
-            webView.callJavascript(data: "KodaBots.sentBlock(\"\(nextBlockId)\", { token: \"\(token)\" })")
             return true
         } else {
             return false
@@ -324,11 +313,6 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandler {
                             eventType: (eventType as? String) ?? "",
                             params: (params as? [String:String]) ?? [:]
                         ))
-                    if eventType as? String == EventKeys.customGenerateToken {
-                        guard let params = params as? [String : String] else { return }
-                        guard let nextBlockId = params[ParamKeys.nextBlockId] else { return }
-                        self.nextBlockId = nextBlockId
-                    }
                 } else {
                     print("KodaBotsSDK message handler -> property 'eventType' or 'params' missing")
                 }
@@ -421,12 +405,4 @@ extension String {
     var localized: String {
         return NSLocalizedString(self, tableName: "KodaBotsLocalizable", bundle: Bundle(for: KodaBotsWebViewViewController.classForCoder()), value: "", comment: "")
     }
-}
-
-enum ParamKeys {
-    static let nextBlockId = "next_block_id"
-}
-
-enum EventKeys {
-    static let customGenerateToken = "web.chatbot.chat.custom.generate_token"
 }
