@@ -20,13 +20,13 @@ public class KodaBotsWebViewViewController: UIViewController {
     @IBOutlet weak var wentWrongImage: UIImageView!
     @IBOutlet weak var wentWrongLabel: UILabel!
     @IBOutlet weak var wentWrongButton: UIButton!
-    
+
     private let WENT_WRONG_TIMEOUT = DispatchTimeInterval.seconds(20)
     var customConfig:KodaBotsConfig?
     var callbacks:(KodaBotsCallbacks)->Void = {_ in}
     private var isReady = false
     private var wentWrongTask:DispatchWorkItem?
-    
+
     public override func viewDidLoad() {
         super.viewDidLoad()
         wentWrongTask = DispatchWorkItem {
@@ -191,20 +191,29 @@ public class KodaBotsWebViewViewController: UIViewController {
     }
     
     /**
-     * Method used to send conversation blockId
+     * Sends the conversation block ID along with optional custom parameters.
      *
-     * parameter blockId: Conversation block id
-     * returns: true if invoked
+     * - Parameters:
+     *   - blockId: The ID of the conversation block.
+     *   - params: Optional custom parameters to include in the request.
+     * - Returns: `true` if the method was successfully invoked.
      */
-    public func sendBlock(blockId: String)-> Bool{
-        if isReady {
+    public func sendBlock(blockId: String, params: [String:String]? = nil) -> Bool {
+        guard isReady else { return false }
+        guard let params, !params.isEmpty else {
             webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\");")
             return true
-        } else {
+        }
+        guard
+            let jsonData = try? JSONSerialization.data(withJSONObject: params, options: []),
+            let encodedParams = String(data: jsonData, encoding: .utf8)
+        else {
             return false
         }
+        webView.callJavascript(data: "KodaBots.sentBlock(\"\(blockId)\",\(encodedParams));")
+        return true
     }
-    
+
     /**
      * Method used to set new user profile
      *

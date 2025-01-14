@@ -2,7 +2,7 @@
 Pod::Spec.new do |spec|
 
   spec.name             = "KodaBotsSDK"
-  spec.version          = "1.0.5"
+  spec.version          = "1.3.0"
   spec.summary          = "SDK for KODA Bots"
   spec.description      = "SDK for KODA Bots for iOS"
   spec.homepage         = "https://kodabots.com/"

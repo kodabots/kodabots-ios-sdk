@@ -78,16 +78,39 @@ class MainViewController: UIViewController {
         let sendBlockAction = UIAlertAction(title: NSLocalizedString("SET BLOCK ID", comment: ""), style: .default){ (action) in
             let alert = UIAlertController(title: "Set blockId", message: "", preferredStyle: .alert)
             alert.addTextField { (textField) in
+                textField.placeholder = "Block ID"
             }
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] (_) in
-                if self.kodaBotsWebView != nil {
-                    if self.kodaBotsWebView!.sendBlock(blockId: alert?.textFields![0].text! ?? "") == false{
-                        self.showToast("INITIALIZE WEBVIEW")
+            alert.addTextField { (textField) in
+                textField.placeholder = "Param Key (Optional)"
+            }
+            alert.addTextField { (textField) in
+                textField.placeholder = "Param Value (Optional)"
+            }
+            alert.addAction(
+                UIAlertAction(
+                    title: "OK",
+                    style: .default,
+                    handler: { [weak alert] (_) in
+                        if self.kodaBotsWebView != nil {
+                            let blockID = alert?.textFields?[0].text ?? ""
+                            let paramKey = alert?.textFields?[1].text
+                            let paramValue = alert?.textFields?[2].text
+                            var params: [String:String]? = nil
+                            if
+                                let paramKey, !paramKey.isEmpty,
+                                let paramValue, !paramValue.isEmpty
+                            {
+                                params = [paramKey:paramValue]
+                            }
+                            if !self.kodaBotsWebView!.sendBlock(blockId: blockID, params: params) {
+                                self.showToast("INITIALIZE WEBVIEW")
+                            }
+                        } else {
+                            self.showToast("INITIALIZE WEBVIEW")
+                        }
                     }
-                } else {
-                    self.showToast("INITIALIZE WEBVIEW")
-                }
-            }))
+                )
+            )
             self.present(alert, animated: true, completion: nil)
         }
         let simulateAlertAction = UIAlertAction(title: NSLocalizedString("SIMULATE ERROR", comment: ""), style: .default){ (action) in

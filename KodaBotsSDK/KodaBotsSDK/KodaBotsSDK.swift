@@ -11,11 +11,12 @@ import UIKit
 import WebKit
 import Lottie
 
-public final class KodaBotsSDK {
+public final class KodaBotsSDK: NSObject {
     private var isInitialized = false
     internal var clientToken:String?
     public static let shared = KodaBotsSDK()
-    private init(){}
+
+    private override init(){}
     
     /**
      * Method used to initialize SDK.
