@@ -7,10 +7,10 @@
 //
 
 import Foundation
-
 import UIKit
-protocol Coordinator : class {
-    var uuid:UUID {get}
+
+protocol Coordinator: AnyObject {
+    var uuid: UUID {get}
     var childCoordinators: [UUID:Coordinator] { get set }
     
     // All coordinators will be initilised with a navigation controller

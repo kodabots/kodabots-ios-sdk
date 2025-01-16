@@ -12,12 +12,14 @@ import WebKit
 import Lottie
 
 public final class KodaBotsSDK: NSObject {
+
     private var isInitialized = false
-    internal var clientToken:String?
+    internal var clientToken: String?
+
     public static let shared = KodaBotsSDK()
 
-    private override init(){}
-    
+    private override init() {}
+
     /**
      * Method used to initialize SDK.
      * Fetches ClientToken from plits file.
@@ -25,39 +27,43 @@ public final class KodaBotsSDK: NSObject {
      * returns: Boolean value that indicates init state
      */
     public func initialize()-> Bool {
-        let plist = Bundle.main.object(forInfoDictionaryKey: "KodaBotsSDK") as! [String:Any]
-        if let plistClientToken = plist["clientToken"] {
-            clientToken = plistClientToken as! String
+        let plist = Bundle.main.object(forInfoDictionaryKey: "KodaBotsSDK") as? [String:Any]
+        guard let plist = plist else { return false }
+        if
+            let plistClientToken = plist["clientToken"],
+            let plistClientToken = plistClientToken as? String
+        {
+            clientToken = plistClientToken
             isInitialized = true
             return true
         } else {
             return false
         }
     }
-    
+
     /**
      * Method used to uninitialize SDK.
      */
     public func uninitialize() {
         isInitialized = false
     }
-    
-    internal func gatherPhoneData(userProfile:UserProfile?)-> UserProfile?{
+
+    internal func gatherPhoneData(userProfile:UserProfile?)-> UserProfile? {
         let webview = WKWebView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
-        let userAgentString = webview.value(forKey: "userAgent") as! String
-        var systemVersion = UIDevice.current.systemVersion
+        let userAgentString = webview.value(forKey: "userAgent") as? String
+        let systemVersion = UIDevice.current.systemVersion
         let modelName = UIDevice.modelName
-        let language = Bundle.main.preferredLocalizations.first as! NSString
-        print("KodaBotsSDK -> UserAgent: \(userAgentString) ; System Version: \(systemVersion) ; Model Name: \(modelName) ; Language: \(language)")
+        let language = Bundle.main.preferredLocalizations.first ?? "en"
+        print("KodaBotsSDK -> UserAgent: \(userAgentString ?? "") ; System Version: \(systemVersion) ; Model Name: \(modelName) ; Language: \(language)")
         userProfile?.os = "iOS"
         userProfile?.manufacturer = "Apple"
         userProfile?.webview_user_agent = userAgentString
         userProfile?.model = modelName
-        userProfile?.locale = language as String
+        userProfile?.locale = language
         userProfile?.os_version = systemVersion
         return userProfile
     }
-    
+
     /**
      * Method used to get unread messages count
      *
@@ -76,7 +82,7 @@ public final class KodaBotsSDK: NSObject {
             callback(CallResponse.Error("UserID or ClientID are nil"))
         }
     }
-    
+
     /**
      * If SDK is initialized, will return KodaBotsWebViewViewController that you can display and use.
      *
