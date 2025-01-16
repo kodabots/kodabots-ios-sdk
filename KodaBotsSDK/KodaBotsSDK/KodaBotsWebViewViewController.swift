@@ -12,6 +12,7 @@ import Photos
 import JavaScriptCore
 import Lottie
 
+@preconcurrency
 public class KodaBotsWebViewViewController: UIViewController {
     @IBOutlet weak var webView: WKWebView!
     @IBOutlet weak var loaderWrapper: UIView!
@@ -35,11 +36,11 @@ public class KodaBotsWebViewViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
         setup()
     }
-    
+
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
-    
+
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         if isReady {
@@ -47,7 +48,7 @@ public class KodaBotsWebViewViewController: UIViewController {
         }
         self.webView.navigationDelegate = nil
     }
-    
+
     @objc func willEnterForeground() {
         DispatchQueue.main.async {
             if self.isReady {
@@ -55,32 +56,38 @@ public class KodaBotsWebViewViewController: UIViewController {
             }
         }
     }
-    
+
     private func setup(){
         setupProgress()
         setupWentWrong()
-        
-        let websiteDataTypes = NSSet(array: [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache])
+
+        let websiteDataTypes = NSSet(array: [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]) as? Set<String>
+        guard let websiteDataTypes = websiteDataTypes else { return }
         let date = Date(timeIntervalSince1970: 0)
-        WKWebsiteDataStore.default().removeData(ofTypes: websiteDataTypes as! Set<String>, modifiedSince: date, completionHandler:{ })
-        
-//        let userContentController = WKUserContentController()
+        WKWebsiteDataStore.default()
+            .removeData(
+                ofTypes: websiteDataTypes,
+                modifiedSince: date,
+                completionHandler: { }
+            )
+
+        //        let userContentController = WKUserContentController()
         webView.configuration.userContentController.add(self, name: "onReady")
         webView.configuration.userContentController.add(self, name: "onStatEvent")
         webView.configuration.userContentController.add(self, name: "onError")
         webView.configuration.userContentController.add(self, name: "onLinkClicked")
-//        webView.configuration.userContentController = userContentController
+        //        webView.configuration.userContentController = userContentController
 
         //requestCameraPermission(completion: { granted in
-            self.loadURL()
+        self.loadURL()
         //})
     }
-    
+
     private func setupProgress(){
         if let bgc = customConfig?.progressConfig?.backgroundColor {
             loaderWrapper.backgroundColor = bgc
         }
-        
+
         if customConfig?.progressConfig?.customAnimation == nil {
             let path = Bundle(for: KodaBotsWebViewViewController.classForCoder()).path(forResource: "default_loader",
                                                                                        ofType: "json") ?? ""
@@ -96,7 +103,7 @@ public class KodaBotsWebViewViewController: UIViewController {
         loaderIndicator.loopMode = .loop
         loaderIndicator.play()
     }
-    
+
     private func setupWentWrong(){
         wentWrongLabel.text = "went_wrong_message".localized
         wentWrongButton.setTitle("went_wrong_button".localized, for: .normal)
@@ -146,7 +153,7 @@ public class KodaBotsWebViewViewController: UIViewController {
             wentWrongLabel.textColor = customMessageColor
         }
     }
-    
+
     @objc
     func wentWrongButtonClicked(_ sender: Any?){
         wentWrongWrapper.isHidden = true
@@ -154,19 +161,19 @@ public class KodaBotsWebViewViewController: UIViewController {
         loaderIndicator.play()
         loadURL()
     }
-    
+
     func loadURL(){
         DispatchQueue.main.async {
             if let url = URL(string:
-                "\(Config.shared.BASE_URL!)/mobile/\(Config.shared.API_VERSION!)/?token=\(KodaBotsSDK.shared.clientToken!)"
-                ) {
+                                "\(Config.shared.BASE_URL)/mobile/\(Config.shared.API_VERSION)/?token=\(KodaBotsSDK.shared.clientToken)"
+            ) {
                 self.webView.load(URLRequest(url: url))
 
                 self.webView.navigationDelegate = self
             }
         }
     }
-    
+
     func requestCameraPermission(completion: @escaping (_ granted: Bool) -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: AVMediaType.audio) {
         case .authorized:
@@ -187,9 +194,11 @@ public class KodaBotsWebViewViewController: UIViewController {
                     completion(false)
                 }
             })
+        @unknown default:
+            print("KodaBotsSDK -> Unknown")
         }
     }
-    
+
     /**
      * Sends the conversation block ID along with optional custom parameters.
      *
@@ -226,7 +235,7 @@ public class KodaBotsWebViewViewController: UIViewController {
                 let jsonEncoder = JSONEncoder()
                 let jsonData = try jsonEncoder.encode(KodaBotsSDK.shared.gatherPhoneData(userProfile: profile)!)
                 let jsonString = String(data: jsonData, encoding: .utf8)
-                webView.callJavascript(data: "KodaBots.syncUserProfile(\(jsonString!));")
+                webView.callJavascript(data: "KodaBots.syncUserProfile(\(jsonString ?? ""));")
                 return true
             }
             catch {
@@ -236,7 +245,7 @@ public class KodaBotsWebViewViewController: UIViewController {
             return false
         }
     }
-    
+
     /**
      * Method used to simulate error
      *
@@ -250,36 +259,37 @@ public class KodaBotsWebViewViewController: UIViewController {
             return false
         }
     }
-    
+
     internal func initialize(){
         if customConfig?.userProfile != nil && customConfig?.blockId != nil {
             do {
                 let jsonEncoder = JSONEncoder()
                 let jsonData = try jsonEncoder.encode(KodaBotsSDK.shared.gatherPhoneData(userProfile: customConfig?.userProfile)!)
                 let jsonString = String(data: jsonData, encoding: .utf8)
-                webView.callJavascript(data: "KodaBots.initialize(\(jsonString!),\(customConfig?.blockId!));")
+                webView.callJavascript(data: "KodaBots.initialize(\(jsonString ?? ""),\(customConfig?.blockId ?? ""));")
             }
             catch {
-                webView.callJavascript(data: "KodaBots.initialize(null,\(customConfig?.blockId!));")
+                webView.callJavascript(data: "KodaBots.initialize(null,\(customConfig?.blockId ?? ""));")
             }
         } else if (customConfig?.userProfile != nil && customConfig?.blockId == nil){
             do {
                 let jsonEncoder = JSONEncoder()
-                let jsonData = try jsonEncoder.encode(KodaBotsSDK.shared.gatherPhoneData(userProfile: customConfig?.userProfile)!)
+                guard let userProfile = KodaBotsSDK.shared.gatherPhoneData(userProfile: customConfig?.userProfile) else { return }
+                let jsonData = try jsonEncoder.encode(userProfile)
                 let jsonString = String(data: jsonData, encoding: .utf8)
-                webView.callJavascript(data: "KodaBots.initialize(\(jsonString!),null);")
+                webView.callJavascript(data: "KodaBots.initialize(\(jsonString ?? ""),null);")
             }
             catch {
                 webView.callJavascript(data: "KodaBots.initialize(null,null);")
             }
-            
+
         } else if customConfig?.userProfile == nil && customConfig?.blockId != nil {
-            webView.callJavascript(data: "KodaBots.initialize(null,\(customConfig?.blockId!));")
+            webView.callJavascript(data: "KodaBots.initialize(null,\(customConfig?.blockId ?? ""));")
         } else {
             webView.callJavascript(data: "KodaBots.initialize(null,null);")
         }
     }
-    
+
     private func showWentWrong(){
         wentWrongWrapper.isHidden = false
         loaderIndicator.stop()
@@ -294,9 +304,9 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandler {
         if let body = message.body as? [String : Any?] {
             switch message.name {
             case "onReady":
-                if let userId = body["userId"] {
+                if let userId = body["userId"] as? String {
                     self.wentWrongTask?.cancel()
-                    KodaBotsPreferences.shared.setUserId(userId: userId as! String)
+                    KodaBotsPreferences.shared.setUserId(userId: userId)
                     DispatchQueue.main.async {
                         self.loaderIndicator.stop()
                         self.loaderWrapper.isHidden = true
@@ -340,43 +350,44 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandler {
             print("KodaBotsSDK message handler -> body must be a JSON object, and is: \(message.body)")
         }
     }
-    
+
 }
 
 
 extension KodaBotsWebViewViewController: WKNavigationDelegate {
-    
+
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation) {
         DispatchQueue.main.async {
             self.loaderWrapper.isHidden = false
             self.loaderIndicator.play()
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now()+(customConfig?.timeoutConfig?.timeout ?? WENT_WRONG_TIMEOUT), execute:wentWrongTask!)
     }
-    
+
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         DispatchQueue.main.async {
-            
-          
+
+
             self.initialize()
 
             // ------------------- temporary --------------------,
             // ----- remove when we have callbacks working ------
-//            DispatchQueue.main.asyncAfter(deadline: .now()+10, execute:{
-//                KodaBotsPreferences.shared.setUserId(userId: "1be68070-b686-58f3-aa88-93aa4ef87d3f")
-//                DispatchQueue.main.async {
-//                    self.loaderIndicator.stop()
-//                    self.loaderWrapper.isHidden = true
-//                }
-//                self.isReady = true
-//            })
+            //            DispatchQueue.main.asyncAfter(deadline: .now()+10, execute:{
+            //                KodaBotsPreferences.shared.setUserId(userId: "1be68070-b686-58f3-aa88-93aa4ef87d3f")
+            //                DispatchQueue.main.async {
+            //                    self.loaderIndicator.stop()
+            //                    self.loaderWrapper.isHidden = true
+            //                }
+            //                self.isReady = true
+            //            })
         }
     }
-    
+
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if navigationAction.request.url?.scheme == "tel" {
-            UIApplication.shared.openURL(navigationAction.request.url!)
+            guard let url = navigationAction.request.url else { return }
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
             decisionHandler(.cancel)
         } else {
             decisionHandler(.allow)
@@ -386,7 +397,7 @@ extension KodaBotsWebViewViewController: WKNavigationDelegate {
     public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         decisionHandler(WKNavigationResponsePolicy.allow)
     }
-    
+
 }
 
 public enum KodaBotsCallbacks {

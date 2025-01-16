@@ -7,54 +7,75 @@
 //
 
 import Foundation
-public final class KodaBotsRestApi{
+
+public final class KodaBotsRestApi {
+
     private let client = NetworkClient()
     public static let shared = KodaBotsRestApi()
+
     private init(){}
-    func getUnreadCount(onResponse:@escaping ((GetUnreadCountResponse?, FailReason?, String?)->Void)){
-        client.call(request: Request(url: URL(string:"\(Config.shared.REST_BASE_URL!)/sdk/\(Config.shared.REST_API_VERSION!)/unread-counter")!,
-                                     method: RESTMethod.GET,
-                                     payload: nil,
-                                     headers: ["kodabots-bot-token": KodaBotsSDK.shared.clientToken ?? "",
-                                               "kodabots-bot-user-id": KodaBotsPreferences.shared.getUserId() ?? ""],
-                                     queryItems: [:]),
-                    onResponse: {(response) in
-                        do {
-                            switch response {
-                            case .SUCCESS(let data):
-                                let userInfoResponse = try JSONDecoder().decode(GetUnreadCountResponse.self, from: data!)
-                                onResponse(userInfoResponse, nil, nil)
-                            case .ERROR(let error):
-                                print("KodaBotsSDK -> Error "+error.localizedDescription)
-                                onResponse(nil, .OTHER, error.localizedDescription)
-                            default:
-                                onResponse(nil, .OTHER, "")
-                            }
-                        } catch {
-                            print("KodaBotsSDK -> Error "+error.localizedDescription)
-                            onResponse(nil, .PARSE_EXCEPTION, nil)
-                        }
-        })
+
+    func getUnreadCount(onResponse: @escaping ((GetUnreadCountResponse?, FailReason?, String?) -> Void)) {
+        guard
+            let url = URL(string:"\(Config.shared.REST_BASE_URL)/sdk/\(Config.shared.REST_API_VERSION)/unread-counter")
+        else {
+            return
+        }
+        return client.call(
+            request: Request(
+                url: url,
+                method: RESTMethod.GET,
+                payload: nil,
+                headers: [
+                    "kodabots-bot-token": KodaBotsSDK.shared.clientToken ?? "",
+                    "kodabots-bot-user-id": KodaBotsPreferences.shared.getUserId() ?? ""
+                ],
+                queryItems: [:]
+            ),
+            onResponse: {(response) in
+                do {
+                    switch response {
+                    case .SUCCESS(let data):
+                        guard let data else { return }
+                        let userInfoResponse = try JSONDecoder().decode(GetUnreadCountResponse.self, from: data)
+                        onResponse(userInfoResponse, nil, nil)
+                    case .ERROR(let error):
+                        print("KodaBotsSDK -> Error "+error.localizedDescription)
+                        onResponse(nil, .OTHER, error.localizedDescription)
+                    default:
+                        onResponse(nil, .OTHER, "")
+                    }
+                } catch {
+                    print("KodaBotsSDK -> Error "+error.localizedDescription)
+                    onResponse(nil, .PARSE_EXCEPTION, nil)
+                }
+            }
+        )
     }
-    
 }
 final class NetworkClient {
-    func call(request:Request,onResponse:@escaping ((Response)->Void)){
-        var components = URLComponents(string: request.url.absoluteString)!
-        if request.queryItems.count>0{
-            components.queryItems = request.queryItems.map { (key, value) in
+    func call(request:Request, onResponse: @escaping ((Response) -> Void)) {
+        var components = URLComponents(string: request.url.absoluteString)
+
+        if request.queryItems.count > 0 {
+            components?.queryItems = request.queryItems.map { (key, value) in
                 URLQueryItem(name: key, value: value)
             }
         }
-        var sessionRequest = URLRequest(url: components.url!)
+        guard let url = components?.url else { return }
+        var sessionRequest = URLRequest(url: url)
+
         sessionRequest.httpMethod = "\(request.method)"
-        request.headers.keys.forEach{ key in
-            sessionRequest.addValue(request.headers[key]!, forHTTPHeaderField: key)
+        request.headers.keys.forEach { key in
+            guard let value = request.headers[key] else { return }
+            sessionRequest.addValue(value, forHTTPHeaderField: key)
         }
-        if request.payload != nil {
-            sessionRequest.httpBody = request.payload
+
+        if let payload = request.payload {
+            sessionRequest.httpBody = payload
         }
-        let networkCall = URLSession.shared.dataTask(with: sessionRequest){ data, response, error in
+
+        let networkCall = URLSession.shared.dataTask(with: sessionRequest) { data, response, error in
             let httpResponse = response as? HTTPURLResponse
             if let error = error {
                 onResponse(Response.ERROR(error))
@@ -68,8 +89,8 @@ final class NetworkClient {
                 onResponse(Response.ERROR(NSError(domain: "Response not in 200-299 code, actual code is \(httpResponse?.statusCode ?? -1)", code: 0, userInfo: nil)))
             } else {
                 var errorMessage = ""
-                if data != nil {
-                    errorMessage = String(data: data!, encoding: .utf8)!
+                if let data {
+                    errorMessage = String(data: data, encoding: .utf8) ?? ""
                 }
                 onResponse(Response.ERROR(NSError(domain: "Response not in 200-299 code, actual code is \(httpResponse?.statusCode ?? -1) \(errorMessage)", code: 0, userInfo: nil)))
             }
