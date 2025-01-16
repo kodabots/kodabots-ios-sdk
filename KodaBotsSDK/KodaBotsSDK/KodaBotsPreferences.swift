@@ -21,5 +21,4 @@ public final class KodaBotsPreferences {
     func getUserId()->String?{
         return userPreferences.string(forKey: KodaBotsPreferences.KEY_USER_ID)
     }
-    
 }

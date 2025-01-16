@@ -15,6 +15,7 @@ public final class KodaBotsSDK: NSObject {
 
     private var isInitialized = false
     internal var clientToken: String?
+
     public static let shared = KodaBotsSDK()
 
     private override init() {}
@@ -39,14 +40,14 @@ public final class KodaBotsSDK: NSObject {
             return false
         }
     }
-    
+
     /**
      * Method used to uninitialize SDK.
      */
     public func uninitialize() {
         isInitialized = false
     }
-    
+
     internal func gatherPhoneData(userProfile:UserProfile?)-> UserProfile? {
         let webview = WKWebView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
         let userAgentString = webview.value(forKey: "userAgent") as? String
@@ -62,7 +63,7 @@ public final class KodaBotsSDK: NSObject {
         userProfile?.os_version = systemVersion
         return userProfile
     }
-    
+
     /**
      * Method used to get unread messages count
      *
@@ -81,7 +82,7 @@ public final class KodaBotsSDK: NSObject {
             callback(CallResponse.Error("UserID or ClientID are nil"))
         }
     }
-    
+
     /**
      * If SDK is initialized, will return KodaBotsWebViewViewController that you can display and use.
      *

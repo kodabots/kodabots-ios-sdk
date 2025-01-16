@@ -12,7 +12,6 @@ import Photos
 import JavaScriptCore
 import Lottie
 
-@preconcurrency
 public class KodaBotsWebViewViewController: UIViewController {
     @IBOutlet weak var webView: WKWebView!
     @IBOutlet weak var loaderWrapper: UIView!
@@ -164,9 +163,10 @@ public class KodaBotsWebViewViewController: UIViewController {
 
     func loadURL(){
         DispatchQueue.main.async {
-            if let url = URL(string:
-                                "\(Config.shared.BASE_URL)/mobile/\(Config.shared.API_VERSION)/?token=\(KodaBotsSDK.shared.clientToken)"
-            ) {
+            if
+                let clientToken = KodaBotsSDK.shared.clientToken,
+                let url = URL(string: "\(Config.shared.BASE_URL)/mobile/\(Config.shared.API_VERSION)/?token=\(clientToken)")
+            {
                 self.webView.load(URLRequest(url: url))
 
                 self.webView.navigationDelegate = self
@@ -194,8 +194,6 @@ public class KodaBotsWebViewViewController: UIViewController {
                     completion(false)
                 }
             })
-        @unknown default:
-            print("KodaBotsSDK -> Unknown")
         }
     }
 
@@ -260,7 +258,7 @@ public class KodaBotsWebViewViewController: UIViewController {
         }
     }
 
-    internal func initialize(){
+    internal func initialize() {
         if customConfig?.userProfile != nil && customConfig?.blockId != nil {
             do {
                 let jsonEncoder = JSONEncoder()
@@ -299,7 +297,7 @@ public class KodaBotsWebViewViewController: UIViewController {
 
 extension KodaBotsWebViewViewController: WKScriptMessageHandler {
 
-    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage){
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         print("KodaBotsSDK message handler -> received '\(message.name)' with parameters \(message.body)")
         if let body = message.body as? [String : Any?] {
             switch message.name {

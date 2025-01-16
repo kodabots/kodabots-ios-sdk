@@ -53,6 +53,7 @@ public final class KodaBotsRestApi {
         )
     }
 }
+
 final class NetworkClient {
     func call(request:Request, onResponse: @escaping ((Response) -> Void)) {
         var components = URLComponents(string: request.url.absoluteString)
