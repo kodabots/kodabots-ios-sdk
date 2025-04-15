@@ -32,16 +32,16 @@ public class Config {
     }
 
     internal func applyStage(){
-        BASE_URL = "https://widget.app2.kodabots.com"
+        BASE_URL = "https://web.staging.koda.ai"
         API_VERSION = "v1"
-        REST_BASE_URL = "https://chatbot-bnwtfr6jae-stage.kodabots.com"
+        REST_BASE_URL = "https://bot.staging.koda.ai"
         REST_API_VERSION = "v1"
     }
 
     internal func applyRelease(){
-        BASE_URL = "https://web.kodabots.com/mobile"
+        BASE_URL = "https://web.eu-pl.koda.ai"
         API_VERSION = "v1"
-        REST_BASE_URL = "https://chatbot-mxwaxhdter.kodabots.com"
+        REST_BASE_URL = "https://bot.eu-pl.koda.ai"
         REST_API_VERSION = "v1"
     }
 }
