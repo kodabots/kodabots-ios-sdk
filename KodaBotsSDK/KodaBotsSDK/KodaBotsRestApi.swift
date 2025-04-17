@@ -17,7 +17,7 @@ public final class KodaBotsRestApi {
 
     func getUnreadCount(onResponse: @escaping ((GetUnreadCountResponse?, FailReason?, String?) -> Void)) {
         guard
-            let url = URL(string:"\(Config.shared.REST_BASE_URL)/sdk/\(Config.shared.REST_API_VERSION)/unread-counter")
+            let url = URL(string:"\(URLManager.shared.rest)/sdk/\(URLManager.shared.restVersion)/unread-counter")
         else {
             return
         }

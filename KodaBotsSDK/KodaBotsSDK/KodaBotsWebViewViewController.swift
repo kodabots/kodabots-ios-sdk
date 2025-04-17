@@ -165,7 +165,7 @@ public class KodaBotsWebViewViewController: UIViewController {
         DispatchQueue.main.async {
             if
                 let clientToken = KodaBotsSDK.shared.clientToken,
-                let url = URL(string: "\(Config.shared.BASE_URL)/mobile/\(Config.shared.API_VERSION)?token=\(clientToken)")
+                let url = URL(string: "\(URLManager.shared.base)/mobile/\(URLManager.shared.baseVersion)?token=\(clientToken)")
             {
                 self.webView.load(URLRequest(url: url))
                 self.webView.navigationDelegate = self

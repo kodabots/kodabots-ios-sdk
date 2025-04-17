@@ -13,7 +13,12 @@ import Lottie
 
 public final class KodaBotsSDK: NSObject {
 
+    // MARK: - Properties (private)
+
     private var isInitialized = false
+
+    // MARK: - Properties (internal)
+
     internal var clientToken: String?
 
     public static let shared = KodaBotsSDK()
@@ -34,11 +39,24 @@ public final class KodaBotsSDK: NSObject {
             let plistClientToken = plistClientToken as? String
         {
             clientToken = plistClientToken
+            clientToken = plistClientToken
             isInitialized = true
             return true
         } else {
             return false
         }
+    }
+
+    /**
+     * Method used to initialize SDK.
+     * Use custom ClientToken.
+     *
+     * returns: Boolean value that indicates init state
+     */
+    public func initialize(clientToken: String)-> Bool {
+        self.clientToken = clientToken
+        isInitialized = true
+        return true
     }
 
     /**
