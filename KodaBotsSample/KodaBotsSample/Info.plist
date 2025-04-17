@@ -23,7 +23,7 @@
 		<key>clientToken</key>
 		<string>INSERT_YOUR_TOKEN_HERE</string>
 		<key>server</key>
-		<string>STAGE</string>
+		<string>RELEASE</string>
 	</dict>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
