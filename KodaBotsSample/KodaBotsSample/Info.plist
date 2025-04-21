@@ -32,7 +32,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library needed</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Aby korzystać z funkcji głosowych, włącz dostęp do mikrofonu w Ustawieniach.</string>
+	<string>Microphone access needed</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

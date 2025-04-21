@@ -12,10 +12,10 @@ import UIKit
 class RootCoordinator: NSObject, Coordinator {
     var uuid: UUID = UUID()
     var childCoordinators: [UUID:Coordinator] = [:]
-    var currentUUID:UUID?
-        
-    weak var navigationController:UINavigationController?
-    
+    var currentUUID: UUID?
+
+    weak var navigationController: UINavigationController?
+
     required init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
@@ -29,7 +29,6 @@ class RootCoordinator: NSObject, Coordinator {
         }
     }
     
-    func onBackDetected(_ uuid: UUID) {
-    }
+    func onBackDetected(_ uuid: UUID) {}
 }
 
