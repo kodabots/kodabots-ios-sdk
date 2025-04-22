@@ -31,6 +31,7 @@ public final class KodaBotsSDK: NSObject {
      *
      * returns: Boolean value that indicates init state
      */
+    @available(*, deprecated, message: "Use SPM version (available from KodaBots 1.5.0)")
     public func initialize()-> Bool {
         let plist = Bundle.main.object(forInfoDictionaryKey: "KodaBotsSDK") as? [String:Any]
         guard let plist = plist else { return false }
@@ -53,6 +54,7 @@ public final class KodaBotsSDK: NSObject {
      *
      * returns: Boolean value that indicates init state
      */
+    @available(*, deprecated, message: "Use SPM version (available from KodaBots 1.5.0)")
     public func initialize(clientToken: String)-> Bool {
         self.clientToken = clientToken
         isInitialized = true
