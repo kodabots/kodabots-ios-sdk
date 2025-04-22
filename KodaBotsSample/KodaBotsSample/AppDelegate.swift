@@ -7,13 +7,13 @@
 //
 
 import UIKit
-import KodaBotsSDK
+import KodaBots
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
-    var rootCoordinator : RootCoordinator?
+    var rootCoordinator: RootCoordinator?
     
     func applicationDidFinishLaunching(_ application: UIApplication) {
         window = UIWindow(frame: UIScreen.main.bounds)
@@ -24,7 +24,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UIPickerView.appearance().tintColor = UIColor.blue
         window?.makeKeyAndVisible()
     }
-
-
 }
 
