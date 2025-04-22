@@ -17,11 +17,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func applicationDidFinishLaunching(_ application: UIApplication) {
         window = UIWindow(frame: UIScreen.main.bounds)
-        if KodaBotsSDK.shared.initialize() {
-            print("KodaBotsSDK - INITILIZED")
-        } else {
-            print("KodaBotsSDK - NOT INITILIZED")
-        }
         let mainViewController = UINavigationController()
         rootCoordinator = RootCoordinator(navigationController: mainViewController)
         window?.rootViewController = mainViewController

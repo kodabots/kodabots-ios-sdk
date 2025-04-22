@@ -12,7 +12,12 @@ import Photos
 import JavaScriptCore
 import Lottie
 
+import MediaPlayer
+
 public class KodaBotsWebViewViewController: UIViewController {
+
+    // MARK: - Properties IBOutlet
+
     @IBOutlet weak var webView: WKWebView!
     @IBOutlet weak var loaderWrapper: UIView!
     @IBOutlet weak var loaderIndicator: AnimationView!
@@ -21,18 +26,21 @@ public class KodaBotsWebViewViewController: UIViewController {
     @IBOutlet weak var wentWrongLabel: UILabel!
     @IBOutlet weak var wentWrongButton: UIButton!
 
+    // MARK: - Properties (private)
+
     private let WENT_WRONG_TIMEOUT = DispatchTimeInterval.seconds(20)
-    var customConfig:KodaBotsConfig?
-    var callbacks:(KodaBotsCallbacks)->Void = {_ in}
     private var isReady = false
-    private var wentWrongTask:DispatchWorkItem?
+    private var wentWrongTask: DispatchWorkItem?
+
+    // MARK: - Properties
+
+    var customConfig: KodaBotsConfig?
+    var callbacks: (KodaBotsCallbacks) -> Void = {_ in}
+
+    // MARK: - Lifecycle
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        wentWrongTask = DispatchWorkItem {
-            self.showWentWrong()
-        }
-        NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
         setup()
     }
 
@@ -48,7 +56,8 @@ public class KodaBotsWebViewViewController: UIViewController {
         self.webView.navigationDelegate = nil
     }
 
-    @objc func willEnterForeground() {
+    @objc
+    func willEnterForeground() {
         DispatchQueue.main.async {
             if self.isReady {
                 self.webView.callJavascript(data: "KodaBots.onResume();")
@@ -56,30 +65,53 @@ public class KodaBotsWebViewViewController: UIViewController {
         }
     }
 
-    private func setup(){
+    @objc
+    func handleAppDidEnterBackground() {
+        guard isReady else { return }
+        webView.callJavascript(data: "KodaBots.onPause();")
+    }
+
+    @objc
+    func wentWrongButtonClicked(_ sender: Any?){
+        wentWrongWrapper.isHidden = true
+        loaderWrapper.isHidden = false
+        loaderIndicator.play()
+        loadURL()
+    }
+}
+
+// MARK: - Methods (private)
+
+extension KodaBotsWebViewViewController {
+    private func setup() {
+        setupObservers()
+        setupWenWrongTask()
         setupProgress()
         setupWentWrong()
+        setupWebData()
+        setupWebView()
+        loadURL()
+    }
 
-        let websiteDataTypes = NSSet(array: [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]) as? Set<String>
-        guard let websiteDataTypes = websiteDataTypes else { return }
-        let date = Date(timeIntervalSince1970: 0)
-        WKWebsiteDataStore.default()
-            .removeData(
-                ofTypes: websiteDataTypes,
-                modifiedSince: date,
-                completionHandler: { }
-            )
+    private func setupObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(willEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+    }
 
-        //        let userContentController = WKUserContentController()
-        webView.configuration.userContentController.add(self, name: "onReady")
-        webView.configuration.userContentController.add(self, name: "onStatEvent")
-        webView.configuration.userContentController.add(self, name: "onError")
-        webView.configuration.userContentController.add(self, name: "onLinkClicked")
-        //        webView.configuration.userContentController = userContentController
-
-        //requestCameraPermission(completion: { granted in
-        self.loadURL()
-        //})
+    private func setupWenWrongTask() {
+        wentWrongTask = DispatchWorkItem {
+            self.showWentWrong()
+        }
     }
 
     private func setupProgress(){
@@ -153,22 +185,37 @@ public class KodaBotsWebViewViewController: UIViewController {
         }
     }
 
-    @objc
-    func wentWrongButtonClicked(_ sender: Any?){
-        wentWrongWrapper.isHidden = true
-        loaderWrapper.isHidden = false
-        loaderIndicator.play()
-        loadURL()
+    private func setupWebData() {
+        let websiteDataTypes = NSSet(array: [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]) as? Set<String>
+        guard let websiteDataTypes = websiteDataTypes else { return }
+        let date = Date(timeIntervalSince1970: 0)
+
+        WKWebsiteDataStore.default()
+            .removeData(
+                ofTypes: websiteDataTypes,
+                modifiedSince: date,
+                completionHandler: { }
+            )
     }
 
+    private func setupWebView() {
+        webView.configuration.userContentController.add(self, name: "onReady")
+        webView.configuration.userContentController.add(self, name: "onStatEvent")
+        webView.configuration.userContentController.add(self, name: "onError")
+        webView.configuration.userContentController.add(self, name: "onLinkClicked")
+    }
+}
+
+// MARK: - Methods (private)
+
+extension KodaBotsWebViewViewController {
     func loadURL(){
         DispatchQueue.main.async {
             if
                 let clientToken = KodaBotsSDK.shared.clientToken,
-                let url = URL(string: "\(Config.shared.BASE_URL)/mobile/\(Config.shared.API_VERSION)/?token=\(clientToken)")
+                let url = URL(string: "\(URLManager.shared.base)/mobile/\(URLManager.shared.baseVersion)?token=\(clientToken)")
             {
                 self.webView.load(URLRequest(url: url))
-
                 self.webView.navigationDelegate = self
             }
         }
@@ -365,8 +412,6 @@ extension KodaBotsWebViewViewController: WKNavigationDelegate {
 
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         DispatchQueue.main.async {
-
-
             self.initialize()
 
             // ------------------- temporary --------------------,

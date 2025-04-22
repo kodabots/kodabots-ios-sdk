@@ -10,10 +10,13 @@ import UIKit
 import KodaBotsSDK
 
 class MainViewController: UIViewController {
-    @IBOutlet weak var controllsButton: UIButton!
-    @IBOutlet weak var webViewContainer: UIView!
-    @IBOutlet weak var test: UILabel!
-    
+
+    // MARK: - Properties (private)
+
+    private var customClientID: String?
+
+    // MARK: - Properties
+
     var kodaBotsWebView:KodaBotsWebViewViewController?
     var callbacks:(KodaBotsCallbacks)->Void = { callback in
         switch callback {
@@ -23,6 +26,12 @@ class MainViewController: UIViewController {
             print("KodaBotsSDK -> Error received: \(error)")
         }
     }
+
+    // MARK: - IBOUtlet
+
+    @IBOutlet weak var controllsButton: UIButton!
+    @IBOutlet weak var webViewContainer: UIView!
+    @IBOutlet weak var test: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,6 +43,50 @@ class MainViewController: UIViewController {
         let optionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let initializeAction = UIAlertAction(title: NSLocalizedString("INITIALIZE WEBVIEW", comment: ""), style: .default){ (action) in
             self.initializeWebview()
+        }
+        let setClientIDAction = UIAlertAction(title: NSLocalizedString("SET CLIENT ID", comment: ""), style: .default) { (action) in
+            let alert = UIAlertController(title: "Set Client ID", message: "", preferredStyle: .alert)
+            alert.addTextField { (textField) in
+                textField.placeholder = "Client ID"
+            }
+            alert.addAction(
+                UIAlertAction(
+                    title: "Set (release)",
+                    style: .default,
+                    handler: { [weak alert] (_) in
+                        let clientID = alert?.textFields?[0].text
+                        guard let clientID else { return }
+                        guard !clientID.isEmpty else { return }
+                        self.showToast("CLIENT ID SET: \(clientID)")
+                        self.customClientID = clientID
+                        URLManager.shared.type = .release
+                    }
+                )
+            )
+            alert.addAction(
+                UIAlertAction(
+                    title: "Set (stage)",
+                    style: .default,
+                    handler: { [weak alert] (_) in
+                        let clientID = alert?.textFields?[0].text
+                        guard let clientID else { return }
+                        guard !clientID.isEmpty else { return }
+                        self.showToast("CLIENT ID SET: \(clientID)")
+                        self.customClientID = clientID
+                        URLManager.shared.type = .stage
+                    }
+                )
+            )
+            alert.addAction(
+                UIAlertAction(
+                    title: "Cancel",
+                    style: .default,
+                    handler: { _ in
+                        optionMenu.dismiss(animated: true, completion: nil)
+                    }
+                )
+            )
+            self.present(alert, animated: true, completion: nil)
         }
         let getUnreadCountAction = UIAlertAction(title: NSLocalizedString("GET UNREAD COUNT", comment: ""), style: .default){ (action) in
             KodaBotsSDK.shared.getUnreadCount(callback: { response in
@@ -75,7 +128,7 @@ class MainViewController: UIViewController {
             }))
             self.present(alert, animated: true, completion: nil)
         }
-        let sendBlockAction = UIAlertAction(title: NSLocalizedString("SET BLOCK ID", comment: ""), style: .default){ (action) in
+        let sendBlockAction = UIAlertAction(title: NSLocalizedString("SET BLOCK ID", comment: ""), style: .default) { (action) in
             let alert = UIAlertController(title: "Set blockId", message: "", preferredStyle: .alert)
             alert.addTextField { (textField) in
                 textField.placeholder = "Block ID"
@@ -122,11 +175,16 @@ class MainViewController: UIViewController {
                 self.showToast("INITIALIZE WEBVIEW")
             }
         }
+        let closeAction = UIAlertAction(title: NSLocalizedString("Close", comment: ""), style: .default) { (action) in
+            optionMenu.dismiss(animated: true, completion: nil)
+        }
         optionMenu.addAction(initializeAction)
+        optionMenu.addAction(setClientIDAction)
         optionMenu.addAction(getUnreadCountAction)
         optionMenu.addAction(syncProfileAction)
         optionMenu.addAction(sendBlockAction)
         optionMenu.addAction(simulateAlertAction)
+        optionMenu.addAction(closeAction)
         present(optionMenu, animated: true, completion: nil)
     }
     
@@ -142,6 +200,7 @@ class MainViewController: UIViewController {
     
     func initializeWebview(){
         DispatchQueue.main.async {
+            guard self.initializeKodaBot() else { return }
             let config = KodaBotsConfig()
             config.progressConfig = KodaBotsProgressConfig()
             config.progressConfig?.backgroundColor = UIColor.white
@@ -160,5 +219,21 @@ class MainViewController: UIViewController {
                 ])
             }
         }
+    }
+
+    func initializeKodaBot() -> Bool {
+        if let customClientID {
+            guard KodaBotsSDK.shared.initialize(clientToken: customClientID) else {
+                print("KodaBotsSDK - NOT INITILIZED")
+                return false
+            }
+        } else {
+            guard KodaBotsSDK.shared.initialize() else {
+                print("KodaBotsSDK - NOT INITILIZED")
+                return false
+            }
+        }
+        print("KodaBotsSDK - INITILIZED")
+        return true
     }
 }
