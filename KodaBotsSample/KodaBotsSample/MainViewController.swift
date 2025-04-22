@@ -7,18 +7,19 @@
 //
 
 import UIKit
-import KodaBotsSDK
+import KodaBots
 
-class MainViewController: UIViewController {
+final class MainViewController: UIViewController {
 
     // MARK: - Properties (private)
 
     private var customClientID: String?
+    private var serverType: KBServerType?
 
     // MARK: - Properties
 
-    var kodaBotsWebView:KodaBotsWebViewViewController?
-    var callbacks:(KodaBotsCallbacks)->Void = { callback in
+    var kodaBotsWebView: KodaBotsWebViewViewController?
+    var callbacks: (KodaBotsCallbacks) -> Void = { callback in
         switch callback {
         case .Event(let type, let parameters):
             print("KodaBotsSDK -> Event received: \(type) - \(parameters)")
@@ -31,7 +32,6 @@ class MainViewController: UIViewController {
 
     @IBOutlet weak var controllsButton: UIButton!
     @IBOutlet weak var webViewContainer: UIView!
-    @IBOutlet weak var test: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,7 +59,7 @@ class MainViewController: UIViewController {
                         guard !clientID.isEmpty else { return }
                         self.showToast("CLIENT ID SET: \(clientID)")
                         self.customClientID = clientID
-                        URLManager.shared.type = .release
+                        self.serverType = .release
                     }
                 )
             )
@@ -73,7 +73,7 @@ class MainViewController: UIViewController {
                         guard !clientID.isEmpty else { return }
                         self.showToast("CLIENT ID SET: \(clientID)")
                         self.customClientID = clientID
-                        URLManager.shared.type = .stage
+                        self.serverType = .stage
                     }
                 )
             )
@@ -113,16 +113,17 @@ class MainViewController: UIViewController {
             alert.addTextField { (textField) in
                 textField.text = "Custom key"
             }
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] (_) in
-                if self.kodaBotsWebView != nil {
-                    let profile = UserProfile()
-                    profile.first_name = alert?.textFields![0].text
-                    profile.last_name = alert?.textFields![1].text
-                    profile.custom_parameters["custom_key"] =  alert?.textFields![2].text
-                    if self.kodaBotsWebView!.syncUserProfile(profile: profile) == false{
-                        self.showToast("INITIALIZE WEBVIEW")
-                    }
-                } else {
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert, weak self] (_) in
+                guard let self else { return }
+                guard let kodaBotsWebView else {
+                    self.showToast("kodaBotsWebView is nil")
+                    return
+                }
+                let profile = UserProfile()
+                profile.firstName = alert?.textFields![0].text
+                profile.lastName = alert?.textFields![1].text
+                profile.customParameters["custom_key"] =  alert?.textFields![2].text
+                if self.kodaBotsWebView!.syncUserProfile(profile: profile) == false{
                     self.showToast("INITIALIZE WEBVIEW")
                 }
             }))
@@ -222,18 +223,21 @@ class MainViewController: UIViewController {
     }
 
     func initializeKodaBot() -> Bool {
-        if let customClientID {
-            guard KodaBotsSDK.shared.initialize(clientToken: customClientID) else {
-                print("KodaBotsSDK - NOT INITILIZED")
-                return false
-            }
-        } else {
+        guard
+            let customClientID,
+            let serverType
+        else {
             guard KodaBotsSDK.shared.initialize() else {
                 print("KodaBotsSDK - NOT INITILIZED")
                 return false
             }
+            return true
         }
-        print("KodaBotsSDK - INITILIZED")
-        return true
+        let settings = KBSettings(
+            clientToken: customClientID,
+            server: serverType,
+            debugMessagesEnabled: true
+        )
+        return KodaBotsSDK.shared.initialize(with: settings)
     }
 }

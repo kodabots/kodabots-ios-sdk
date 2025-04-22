@@ -20,7 +20,7 @@ class MainCoordinator: Coordinator {
     }
     
     func start() {
-        let viewController : MainViewController = MainViewController(nibName: "MainViewController", bundle: nil)
+        let viewController: MainViewController = MainViewController(nibName: "MainViewController", bundle: nil)
         navigationController?.viewControllers = [viewController]
         navigationController?.setNavigationBarHidden(true, animated: false)
     }

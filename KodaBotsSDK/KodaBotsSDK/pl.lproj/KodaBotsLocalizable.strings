@@ -1,9 +1,0 @@
-/* 
-  KodaBotsDefaultStrings.strings
-  KodaBotsSDK
-
-  Created by Felislynx.Silae on 25/02/2021.
-  Copyright © 2021 KodaBots. All rights reserved.
-*/
-"went_wrong_message" = "Meh. Coś poszło nie tak.";
-"went_wrong_button" = "Ponów";
