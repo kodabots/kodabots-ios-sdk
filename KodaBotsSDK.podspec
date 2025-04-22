@@ -1,14 +1,14 @@
 Pod::Spec.new do |spec|
 
   spec.name             = "KodaBotsSDK"
-  spec.version          = "1.3.3"
+  spec.version          = "1.4.0"
   spec.summary          = "SDK for KODA Bots"
   spec.description      = "SDK for KODA Bots for iOS"
   spec.homepage         = "https://kodabots.com/"
   spec.swift_version    = "5.0"
   spec.license          = { :type => "MIT", :file => "LICENSE" }
   spec.author           = { "KODA sp. z o.o." => "it@koda.ai" }
-  spec.platform         = :ios, "12.0"
+  spec.platform         = :ios, "13.2"
 
   spec.source           = { :git => "https://github.com/kodabots/kodabots-ios-sdk.git", :tag => spec.version }
   spec.source_files     = "KodaBotsSDK/KodaBotsSDK/**/*.swift"
