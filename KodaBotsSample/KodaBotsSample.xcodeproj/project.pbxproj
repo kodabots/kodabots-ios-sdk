@@ -125,7 +125,7 @@
 			);
 			mainGroup = FDDA0638253062040010DDF7;
 			packageReferences = (
-				3B0F2C912DB7DF0C009A7F72 /* XCLocalSwiftPackageReference "../../kodabots-ios-sdk" */,
+				3B0F2C912DB7DF0C009A7F72 /* XCLocalSwiftPackageReference "kodabots-ios-sdk" */,
 			);
 			productRefGroup = FDDA0642253062040010DDF7 /* Products */;
 			projectDirPath = "";
@@ -368,7 +368,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3B0F2C912DB7DF0C009A7F72 /* XCLocalSwiftPackageReference "../../kodabots-ios-sdk" */ = {
+		3B0F2C912DB7DF0C009A7F72 /* XCLocalSwiftPackageReference "kodabots-ios-sdk" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../../kodabots-ios-sdk";
 		};
