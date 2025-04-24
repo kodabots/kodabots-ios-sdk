@@ -11,7 +11,7 @@ To install KodaBots using Swift Package Manager you can follow the [tutorial pub
 or you can add the following dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/kodabots/kodabots-ios-sdk.git", from: "1.4.0")
+.package(url: "https://github.com/kodabots/kodabots-ios-sdk.git", from: "1.5.0")
 ```
 
 and add it to your target like this:
@@ -35,10 +35,10 @@ dependencies: [
 
 ### Initialize without info.plist
 
-From version `1.4.0` it's possible to initialize KodaBots SDK without info.plist declaration. To initialize use ```KodaBotsSDK.shared.initialize(with settings: KBSettings)``` where ```KBSettings``` includes informations: ```clientID```, ```serverType``` and ```debugEnabled```.
+From version `1.5.0` it's possible to initialize KodaBots SDK without info.plist declaration. To initialize use ```KodaBotsSDK.shared.initialize(with settings: KBSettings)``` where ```KBSettings``` includes informations: ```clientID```, ```serverType``` and ```debugEnabled```.
 
 ### Debugging
-From version `1.4.0` debug messages from package are disabled, to enable use ```KodaBotsSDK.shared.initialize(debugMessagesEnabled: true)``` or set it on ```KBSettings```.
+From version `1.5.0` debug messages from package are disabled, to enable use ```KodaBotsSDK.shared.initialize(debugMessagesEnabled: true)``` or set it on ```KBSettings```.
 
 ## Methods overview
 - ```getUnreadCount``` is available without initialization of webview, inside ```KodaBotsSDK```, returns unread count of messages
