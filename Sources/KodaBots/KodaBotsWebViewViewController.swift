@@ -427,15 +427,19 @@ extension KodaBotsWebViewViewController: WKNavigationDelegate {
         }
     }
 
-    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if navigationAction.request.url?.scheme == "tel" {
-            guard let url = navigationAction.request.url else { return }
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            decisionHandler(.cancel)
-        } else {
-            decisionHandler(.allow)
-        }
-    }
+	public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+		if navigationAction.request.url?.scheme == "tel" {
+			guard let url = navigationAction.request.url else { return }
+			UIApplication.shared.open(url, options: [:], completionHandler: nil)
+			decisionHandler(.cancel)
+		} else if let url = navigationAction.request.url,
+							navigationAction.navigationType == .linkActivated {
+			UIApplication.shared.open(url)
+			decisionHandler(.cancel)
+		} else {
+			decisionHandler(.allow)
+		}
+	}
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         decisionHandler(WKNavigationResponsePolicy.allow)
