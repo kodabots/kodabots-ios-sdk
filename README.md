@@ -35,7 +35,7 @@ dependencies: [
 
 ### Initialize without info.plist
 
-From version `1.5.0` it's possible to initialize KodaBots SDK without info.plist declaration. To initialize use ```KodaBotsSDK.shared.initialize(with settings: KBSettings)``` where ```KBSettings``` includes informations: ```clientID```, ```serverType``` and ```debugEnabled```.
+From version `1.5.0` it's possible to initialize KodaBots SDK without info.plist declaration. To initialize use ```KodaBotsSDK.shared.initialize(with settings: KBSettings)``` where ```KBSettings``` includes informations: ```clientID```, ```serverType```, ```debugEnabled``` and ```path```.
 
 ### Debugging
 From version `1.5.0` debug messages from package are disabled, to enable use ```KodaBotsSDK.shared.initialize(debugMessagesEnabled: true)``` or set it on ```KBSettings```.
