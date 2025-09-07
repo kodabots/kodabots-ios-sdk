@@ -8,9 +8,12 @@ import SnapKit
 
 public class KodaBotsWebViewViewController: UIViewController {
 
+	// MARK: - Subviews (public)
+
+	public let webView = Subviews.makeWebView()
+
 	// MARK: - Subviews (private)
 
-	private let webView = Subviews.makeWebView()
 	private let loaderContainerView = Subviews.makeLoaderContainerView()
 	private let loaderAnimationView = Subviews.makeLoaderAnimationView()
 
@@ -31,7 +34,9 @@ public class KodaBotsWebViewViewController: UIViewController {
 	var customConfig: KodaBotsConfig? {
 		didSet {
 			guard let layout = customConfig?.layoutConfig else { return }
-			layoutWebView(with: layout)
+			DispatchQueue.main.async { [weak self] in guard let self else { return }
+				layoutWebView(with: layout)
+			}
 		}
 	}
 
