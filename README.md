@@ -35,7 +35,39 @@ dependencies: [
 
 ### Initialize without info.plist
 
-From version `1.5.0` it's possible to initialize KodaBots SDK without info.plist declaration. To initialize use ```KodaBotsSDK.shared.initialize(with settings: KBSettings)``` where ```KBSettings``` includes informations: ```clientID```, ```serverType```, ```debugEnabled``` and ```path```.
+From version `1.5.0` it's possible to initialize KodaBots SDK without info.plist declaration. To initialize use ```KodaBotsSDK.shared.initialize(with settings: KBSettings)``` where ```KBSettings``` includes informations: ```clientToken```, ```server```, ```debugMessagesEnabled``` and ```path```.
+
+```swift
+let settings = KBSettings(
+    clientToken: "your_token",
+    server: .release,
+    debugMessagesEnabled: false
+)
+
+KodaBotsSDK.shared.initialize(with: settings)
+```
+
+### Custom hosts
+
+From version `1.5.3` it's possible to override the default chatbot and REST API hosts by passing a `path` (`KodaURL`) to `KBSettings`. This is useful for pointing the SDK at a staging environment or a white-label deployment. The override is applied globally for the SDK's entire lifetime — set it once at initialization, before any webview or REST call is made.
+
+```swift
+let customPath = KodaURL(
+    base: "https://web.staging.example.com",
+    baseVersion: "v1",
+    rest: "https://bot.staging.example.com",
+    restVersion: "v1"
+)
+
+let settings = KBSettings(
+    clientToken: "your_token",
+    path: customPath
+)
+
+KodaBotsSDK.shared.initialize(with: settings)
+```
+
+When `path` is `nil` (default), the SDK uses its built-in URLs based on `server` (`.release` or `.stage`).
 
 ### Debugging
 From version `1.5.0` debug messages from package are disabled, to enable use ```KodaBotsSDK.shared.initialize(debugMessagesEnabled: true)``` or set it on ```KBSettings```.
