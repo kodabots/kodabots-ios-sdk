@@ -3,20 +3,25 @@ import WebKit
 import Photos
 import JavaScriptCore
 import Lottie
-
 import MediaPlayer
+import SnapKit
 
 public class KodaBotsWebViewViewController: UIViewController {
 
-	// MARK: - Properties IBOutlet
+	// MARK: - Subviews (public)
 
-	@IBOutlet weak var webView: WKWebView!
-	@IBOutlet weak var loaderWrapper: UIView!
-	@IBOutlet weak var loaderIndicator: LottieAnimationView!
-	@IBOutlet weak var wentWrongWrapper: UIView!
-	@IBOutlet weak var wentWrongImage: UIImageView!
-	@IBOutlet weak var wentWrongLabel: UILabel!
-	@IBOutlet weak var wentWrongButton: UIButton!
+	public let webView = Subviews.makeWebView()
+
+	// MARK: - Subviews (private)
+
+	private let loaderContainerView = Subviews.makeLoaderContainerView()
+	private let loaderAnimationView = Subviews.makeLoaderAnimationView()
+
+	private let errorContainerView = Subviews.makeErrorContainerView()
+	private let errorStackView = Subviews.makeErrorStackView()
+	private let errorImage = Subviews.makeErrorImage()
+	private let errorLabel = Subviews.makeErrorLabel()
+	private let errorButton = Subviews.makeErrorButton()
 
 	// MARK: - Properties (private)
 
@@ -26,18 +31,23 @@ public class KodaBotsWebViewViewController: UIViewController {
 
 	// MARK: - Properties
 
-	var customConfig: KodaBotsConfig?
+	var customConfig: KodaBotsConfig? {
+		didSet {
+			guard let layout = customConfig?.layoutConfig else { return }
+			DispatchQueue.main.async { [weak self] in guard let self else { return }
+				layoutWebView(with: layout)
+			}
+		}
+	}
+
 	var callbacks: (KodaBotsCallbacks) -> Void = {_ in}
 
 	// MARK: - Lifecycle
 
 	public override func viewDidLoad() {
 		super.viewDidLoad()
+		layout()
 		setup()
-	}
-
-	public override func viewDidAppear(_ animated: Bool) {
-		super.viewDidAppear(animated)
 	}
 
 	public override func viewWillDisappear(_ animated: Bool) {
@@ -64,11 +74,94 @@ public class KodaBotsWebViewViewController: UIViewController {
 	}
 
 	@objc
-	func wentWrongButtonClicked(_ sender: Any?){
-		wentWrongWrapper.isHidden = true
-		loaderWrapper.isHidden = false
-		loaderIndicator.play()
+	func errorButtonClicked(_ sender: Any?) {
+		errorContainerView.isHidden = true
+		loaderContainerView.isHidden = false
+		loaderAnimationView.play()
 		loadURL()
+	}
+}
+
+// MARK: - Layout (private)
+
+extension KodaBotsWebViewViewController {
+	private func layout() {
+		addSubviews()
+		layoutWebView()
+		layoutLoaderContainerView()
+		layoutLoaderAnimationView()
+		layoutErrorContainerView()
+		layoutErrorStackView()
+		layoutErrorImage()
+	}
+
+	private func addSubviews() {
+		view.addSubview(webView)
+
+		view.addSubview(loaderContainerView)
+		loaderContainerView.addSubview(loaderAnimationView)
+
+		view.addSubview(errorContainerView)
+		errorContainerView.addSubview(errorStackView)
+		errorStackView.addArrangedSubview(errorImage)
+		errorStackView.addArrangedSubview(errorLabel)
+		errorStackView.addArrangedSubview(errorButton)
+	}
+
+	private func layoutWebView() {
+		webView.snp.makeConstraints { make in
+			make.edges.equalTo(view.safeAreaLayoutGuide)
+		}
+	}
+
+	private func layoutLoaderContainerView() {
+		loaderContainerView.snp.makeConstraints { make in
+			make.edges.equalToSuperview()
+		}
+	}
+
+	private func layoutLoaderAnimationView() {
+		loaderAnimationView.snp.makeConstraints { make in
+			make.center.equalToSuperview().inset(32)
+		}
+	}
+
+	private func layoutErrorContainerView() {
+		errorContainerView.snp.makeConstraints { make in
+			make.edges.equalToSuperview()
+		}
+	}
+
+	private func layoutErrorStackView() {
+		errorStackView.snp.makeConstraints { make in
+			make.horizontalEdges.equalToSuperview().inset(16)
+			make.centerY.equalToSuperview()
+		}
+	}
+
+	private func layoutErrorImage() {
+		errorImage.snp.makeConstraints { make in
+			make.horizontalEdges.equalToSuperview().inset(16)
+		}
+	}
+
+	private func layoutWebView(with config: KodaBotsLayoutConfig) {
+		webView.snp.remakeConstraints { make in
+			switch config {
+			case .safeArea:
+				make.edges.equalTo(view.safeAreaLayoutGuide)
+			case .edges:
+				make.edges.equalToSuperview()
+			case .topEdge:
+				make.top.equalToSuperview()
+				make.bottom.equalTo(view.safeAreaLayoutGuide)
+				make.leading.trailing.bottom.equalToSuperview()
+			case .bottomEdge:
+				make.top.equalTo(view.safeAreaLayoutGuide)
+				make.bottom.equalToSuperview()
+				make.leading.trailing.top.equalToSuperview()
+			}
+		}
 	}
 }
 
@@ -101,6 +194,7 @@ extension KodaBotsWebViewViewController {
 	}
 
 	private func setupWentWrongTask() {
+		errorContainerView.isHidden = true
 		wentWrongTask = DispatchWorkItem {
 			self.showWentWrong()
 		}
@@ -109,76 +203,76 @@ extension KodaBotsWebViewViewController {
 	private func setupProgress() {
 		let progressConfig = customConfig?.progressConfig
 		if let bgc = progressConfig?.backgroundColor {
-			loaderWrapper.backgroundColor = bgc
+			loaderContainerView.backgroundColor = bgc
 		}
 		if progressConfig?.customAnimation == nil {
 			do {
 				if let url = Bundle.module.url(forResource: "default_loader", withExtension: "json") {
 					let data = try Data(contentsOf: url)
 					let animation = try LottieAnimation.from(data: data)
-					loaderIndicator.animation = animation
+					loaderAnimationView.animation = animation
 				}
 			} catch {
 				print("❌ Lottie animation error: \(error)")
 			}
 			if let pc = progressConfig?.progressColor {
-				loaderIndicator.setValueProvider(ColorValueProvider(pc.lottieColorValue), keypath: AnimationKeypath(keypath: "**.Color"))
+				loaderAnimationView.setValueProvider(ColorValueProvider(pc.lottieColorValue), keypath: AnimationKeypath(keypath: "**.Color"))
 			}
 		} else {
-			loaderIndicator.animation = customConfig?.progressConfig?.customAnimation!
+			loaderAnimationView.animation = customConfig?.progressConfig?.customAnimation!
 		}
-		loaderIndicator.contentMode = .scaleToFill
-		loaderIndicator.loopMode = .loop
-		loaderIndicator.play()
+		loaderAnimationView.contentMode = .scaleToFill
+		loaderAnimationView.loopMode = .loop
+		loaderAnimationView.play()
 	}
 
 	private func setupWentWrong(){
-		wentWrongLabel.text = L.wentWrongMessage
-		wentWrongButton.setTitle(L.wentWrongButton, for: .normal)
-		wentWrongButton.addTarget(self, action: #selector(wentWrongButtonClicked(_:)), for: .touchUpInside)
+		errorLabel.text = L.wentWrongMessage
+		errorButton.setTitle(L.errorButton, for: .normal)
+		errorButton.addTarget(self, action: #selector(errorButtonClicked(_:)), for: .touchUpInside)
 		if let background = customConfig?.timeoutConfig?.backgroundColor {
-			wentWrongWrapper.backgroundColor = background
+			errorContainerView.backgroundColor = background
 		}
 		if let customImage = customConfig?.timeoutConfig?.image {
-			wentWrongImage.image = customImage
+			errorImage.image = customImage
 		}
 		if let buttonText = customConfig?.timeoutConfig?.buttonText {
-			wentWrongButton.setTitle(buttonText, for: .normal)
+			errorButton.setTitle(buttonText, for: .normal)
 		}
 		if let buttonTextColor = customConfig?.timeoutConfig?.buttonTextColor {
-			wentWrongButton.setTitleColor(buttonTextColor, for: .normal)
+			errorButton.setTitleColor(buttonTextColor, for: .normal)
 		}
 		if let buttonBackgroundColor = customConfig?.timeoutConfig?.buttonColor {
-			wentWrongButton.backgroundColor = buttonBackgroundColor
+			errorButton.backgroundColor = buttonBackgroundColor
 		}
 		if let buttonFont = customConfig?.timeoutConfig?.buttonFont {
-			wentWrongButton.titleLabel?.font = buttonFont
+			errorButton.titleLabel?.font = buttonFont
 		}
 		if let buttonFontSize = customConfig?.timeoutConfig?.buttonFontSize {
-			let newFont = UIFont(name: (wentWrongButton.titleLabel?.font?.fontName)!, size: CGFloat(buttonFontSize))
-			wentWrongButton.titleLabel?.font = newFont
+			let newFont = UIFont(name: (errorButton.titleLabel?.font?.fontName)!, size: CGFloat(buttonFontSize))
+			errorButton.titleLabel?.font = newFont
 		}
 		if let buttonCornerRadius = customConfig?.timeoutConfig?.buttonCornerRadius {
-			wentWrongButton.layer.cornerRadius = CGFloat(buttonCornerRadius)
+			errorButton.layer.cornerRadius = CGFloat(buttonCornerRadius)
 		}
 		if let buttonBorderWidth = customConfig?.timeoutConfig?.buttonBorderWidth {
-			wentWrongButton.layer.borderWidth = CGFloat(buttonBorderWidth)
+			errorButton.layer.borderWidth = CGFloat(buttonBorderWidth)
 		}
 		if let buttonBorderColor = customConfig?.timeoutConfig?.buttonBorderColor {
-			wentWrongButton.layer.borderColor = buttonBorderColor.cgColor
+			errorButton.layer.borderColor = buttonBorderColor.cgColor
 		}
 		if let customMessage = customConfig?.timeoutConfig?.message {
-			wentWrongLabel.text = customMessage
+			errorLabel.text = customMessage
 		}
 		if let customMessageFont = customConfig?.timeoutConfig?.messageFont {
-			wentWrongLabel.font = customMessageFont
+			errorLabel.font = customMessageFont
 		}
 		if let customMessageFontSize = customConfig?.timeoutConfig?.messageFontSize {
-			let newFont = UIFont(name: (wentWrongLabel.font?.fontName)!, size: CGFloat(customMessageFontSize))
-			wentWrongLabel.font = newFont
+			let newFont = UIFont(name: (errorLabel.font?.fontName)!, size: CGFloat(customMessageFontSize))
+			errorLabel.font = newFont
 		}
 		if let customMessageColor = customConfig?.timeoutConfig?.messageTextColor {
-			wentWrongLabel.textColor = customMessageColor
+			errorLabel.textColor = customMessageColor
 		}
 	}
 
@@ -335,9 +429,9 @@ extension KodaBotsWebViewViewController {
 	}
 
 	private func showWentWrong(){
-		wentWrongWrapper.isHidden = false
-		loaderIndicator.stop()
-		loaderWrapper.isHidden = true
+		errorContainerView.isHidden = false
+		loaderAnimationView.stop()
+		loaderContainerView.isHidden = true
 	}
 }
 
@@ -354,8 +448,8 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandler {
 					self.wentWrongTask?.cancel()
 					KodaBotsPreferences.shared.setUserId(userId: userId)
 					DispatchQueue.main.async {
-						self.loaderIndicator.stop()
-						self.loaderWrapper.isHidden = true
+						self.loaderAnimationView.stop()
+						self.loaderContainerView.isHidden = true
 					}
 					self.isReady = true
 				} else {
@@ -404,8 +498,8 @@ extension KodaBotsWebViewViewController: WKNavigationDelegate {
 
 	public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation) {
 		DispatchQueue.main.async {
-			self.loaderWrapper.isHidden = false
-			self.loaderIndicator.play()
+			self.loaderContainerView.isHidden = false
+			self.loaderAnimationView.play()
 		}
 
 		DispatchQueue.main.asyncAfter(deadline: .now()+(customConfig?.timeoutConfig?.timeout ?? WENT_WRONG_TIMEOUT), execute:wentWrongTask!)
@@ -414,17 +508,6 @@ extension KodaBotsWebViewViewController: WKNavigationDelegate {
 	public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
 		DispatchQueue.main.async {
 			self.initialize()
-
-			// ------------------- temporary --------------------,
-			// ----- remove when we have callbacks working ------
-			//            DispatchQueue.main.asyncAfter(deadline: .now()+10, execute:{
-			//                KodaBotsPreferences.shared.setUserId(userId: "1be68070-b686-58f3-aa88-93aa4ef87d3f")
-			//                DispatchQueue.main.async {
-			//                    self.loaderIndicator.stop()
-			//                    self.loaderWrapper.isHidden = true
-			//                }
-			//                self.isReady = true
-			//            })
 		}
 	}
 
@@ -445,7 +528,6 @@ extension KodaBotsWebViewViewController: WKNavigationDelegate {
 	public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
 		decisionHandler(WKNavigationResponsePolicy.allow)
 	}
-
 }
 
 public enum KodaBotsCallbacks {
@@ -453,11 +535,71 @@ public enum KodaBotsCallbacks {
 	case Error(error:String)
 }
 
-extension WKWebView {
-	func callJavascript(data:String){
-		printIfNeeded(message: "Calling Javascript: \(data)", priority: .info)
-		let requestString = "\(data)"
-		self.evaluateJavaScript(requestString)
+// MARK: - Subviews (private)
+
+@MainActor
+private enum Subviews {
+	static func makeWebView() -> WKWebView {
+		let view = WKWebView()
+		view.translatesAutoresizingMaskIntoConstraints = false
+		return view
+	}
+
+	static func makeLoaderContainerView() -> UIView {
+		let view = UIView()
+		view.backgroundColor = .white
+		view.translatesAutoresizingMaskIntoConstraints = false
+		return view
+	}
+
+	static func makeLoaderAnimationView() -> LottieAnimationView {
+		let view = LottieAnimationView()
+		view.translatesAutoresizingMaskIntoConstraints = false
+		return view
+	}
+
+	static func makeErrorContainerView() -> UIView {
+		let view = UIView()
+		view.backgroundColor = .white
+		view.translatesAutoresizingMaskIntoConstraints = false
+		return view
+	}
+
+	static func makeErrorStackView() -> UIStackView {
+		let stackView = UIStackView()
+		stackView.axis = .vertical
+		stackView.alignment = .center
+		stackView.distribution = .equalSpacing
+		stackView.spacing = 16
+		stackView.translatesAutoresizingMaskIntoConstraints = false
+		return stackView
+	}
+
+	static func makeErrorImage() -> UIImageView {
+		let image = UIImageView()
+		image.image = UIImage(named: "went_wrong", in: .module, with: nil)
+		image.contentMode = .scaleAspectFit
+		image.translatesAutoresizingMaskIntoConstraints = false
+		return image
+	}
+
+	static func makeErrorLabel() -> UILabel {
+		let label = UILabel()
+		label.textColor = .systemPink
+		label.font = .systemFont(ofSize: 24)
+		label.translatesAutoresizingMaskIntoConstraints = false
+		return label
+	}
+
+	static func makeErrorButton() -> UIButton {
+		let button = UIButton(type: .system)
+		button.backgroundColor = .systemPink
+		button.setTitleColor(.white, for: .normal)
+		button.layer.cornerRadius = 14
+		button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 24, bottom: 10, right: 24)
+		button.titleLabel?.font = .boldSystemFont(ofSize: 16)
+		button.translatesAutoresizingMaskIntoConstraints = false
+		return button
 	}
 }
 
@@ -474,5 +616,6 @@ private enum K {
 
 private enum L {
 	static let wentWrongMessage = "went_wrong_message".localized()
-	static let wentWrongButton = "went_wrong_button".localized()
+	static let errorButton = "went_wrong_button".localized()
 }
+

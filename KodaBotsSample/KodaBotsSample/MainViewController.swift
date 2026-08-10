@@ -19,6 +19,7 @@ final class MainViewController: UIViewController {
 
 	// MARK: - Properties
 
+	// TODO: JL
 	var kodaBotsWebView: KodaBotsWebViewViewController?
 	var callbacks: (KodaBotsCallbacks) -> Void = { callback in
 		switch callback {

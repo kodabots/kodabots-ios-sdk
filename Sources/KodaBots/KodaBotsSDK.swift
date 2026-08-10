@@ -98,14 +98,24 @@ public final class KodaBotsSDK: NSObject {
 	 * parameter callbacks: Callbacks from KodaBots chatbot
 	 * returns: KodaBotsWebViewController
 	 */
-	public func generateViewController(config:KodaBotsConfig?, callbacks:((KodaBotsCallbacks)->Void)?)->KodaBotsWebViewViewController?{
+	public func generateViewController(
+		config: KodaBotsConfig?,
+		callbacks: ((KodaBotsCallbacks)->Void)?
+	) -> KodaBotsWebViewViewController? {
 		if isInitialized {
-			let viewController = KodaBotsWebViewViewController(nibName: "KodaBotsWebViewViewController", bundle: Bundle.module)
-			viewController.customConfig = config
-			if callbacks != nil {
-				viewController.callbacks = callbacks!
+			let createVC = {
+				let viewController = KodaBotsWebViewViewController()
+				viewController.customConfig = config
+				if let callbacks = callbacks {
+					viewController.callbacks = callbacks
+				}
+				return viewController
 			}
-			return viewController
+			if Thread.isMainThread {
+				return createVC()
+			} else {
+				return DispatchQueue.main.sync { createVC() }
+			}
 		} else {
 			return nil
 		}
