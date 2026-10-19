@@ -13,12 +13,52 @@ final class MainViewController: UIViewController {
 
 	// MARK: - Properties (private)
 
-	private var customClientID: String?
-	private var customURL: String?
-	private var serverType: KBServerType?
+	// Test settings entered from CONTROLLS are kept between launches.
+	private var customClientID: String? {
+		get { UserDefaults.standard.string(forKey: K.Keys.clientID) }
+		set { UserDefaults.standard.set(newValue, forKey: K.Keys.clientID) }
+	}
+	private var serverType: KBServerType? {
+		get {
+			switch UserDefaults.standard.string(forKey: K.Keys.server) {
+			case "STAGE": return .stage
+			case "RELEASE": return .release
+			default: return nil
+			}
+		}
+		set {
+			let value: String? = switch newValue {
+			case .stage: "STAGE"
+			case .release: "RELEASE"
+			case nil: nil
+			}
+			UserDefaults.standard.set(value, forKey: K.Keys.server)
+		}
+	}
+	private var customPath: (base: String, rest: String, version: String)? {
+		get {
+			guard
+				let base = UserDefaults.standard.string(forKey: K.Keys.baseURL),
+				let rest = UserDefaults.standard.string(forKey: K.Keys.restURL),
+				let version = UserDefaults.standard.string(forKey: K.Keys.version)
+			else { return nil }
+			return (base, rest, version)
+		}
+		set {
+			UserDefaults.standard.set(newValue?.base, forKey: K.Keys.baseURL)
+			UserDefaults.standard.set(newValue?.rest, forKey: K.Keys.restURL)
+			UserDefaults.standard.set(newValue?.version, forKey: K.Keys.version)
+		}
+	}
 	private var userId: String? {
-		get { UserDefaults.standard.string(forKey: "KodaBotsSample.userId") }
-		set { UserDefaults.standard.set(newValue, forKey: "KodaBotsSample.userId") }
+		get { UserDefaults.standard.string(forKey: K.Keys.userID) }
+		set { UserDefaults.standard.set(newValue, forKey: K.Keys.userID) }
+	}
+	private var plistSettings: (clientID: String?, server: KBServerType) {
+		let plist = Bundle.main.object(forInfoDictionaryKey: "KodaBotsSDK") as? [String: Any]
+		let clientID = plist?["clientToken"] as? String
+		let server: KBServerType = (plist?["server"] as? String) == "STAGE" ? .stage : .release
+		return (clientID == K.plistPlaceholder ? nil : clientID, server)
 	}
 
 	// MARK: - Properties
@@ -50,9 +90,12 @@ final class MainViewController: UIViewController {
 			self.initializeWebview()
 		}
 		let setClientIDAction = UIAlertAction(title: NSLocalizedString("SET CLIENT ID", comment: ""), style: .default) { (action) in
-			let alert = UIAlertController(title: "Set Client ID", message: "", preferredStyle: .alert)
+			let alert = UIAlertController(title: "Set Client ID", message: "Choose the server the token belongs to", preferredStyle: .alert)
 			alert.addTextField { (textField) in
 				textField.placeholder = "Client ID"
+				textField.text = self.customClientID
+				textField.autocapitalizationType = .none
+				textField.autocorrectionType = .no
 			}
 			alert.addAction(
 				UIAlertAction(
@@ -94,33 +137,83 @@ final class MainViewController: UIViewController {
 			self.present(alert, animated: true, completion: nil)
 		}
 		let setURL = UIAlertAction(title: NSLocalizedString("SET URL", comment: ""), style: .default) { (action) in
-			let alert = UIAlertController(title: "Set Url", message: "", preferredStyle: .alert)
+			let alert = UIAlertController(
+				title: "Set URL",
+				message: "Overrides the server chosen in SET CLIENT ID.\nChat host, e.g. https://web.staging.koda.ai\nREST host, e.g. https://bot.staging.koda.ai",
+				preferredStyle: .alert
+			)
+			let current = self.customPath
 			alert.addTextField { (textField) in
-				textField.placeholder = "url"
+				textField.placeholder = "Chat host (https://...)"
+				textField.text = current?.base
+				textField.keyboardType = .URL
+				textField.autocapitalizationType = .none
+				textField.autocorrectionType = .no
+			}
+			alert.addTextField { (textField) in
+				textField.placeholder = "REST host (https://...)"
+				textField.text = current?.rest
+				textField.keyboardType = .URL
+				textField.autocapitalizationType = .none
+				textField.autocorrectionType = .no
+			}
+			alert.addTextField { (textField) in
+				textField.placeholder = "Version"
+				textField.text = current?.version ?? "v1"
+				textField.autocapitalizationType = .none
+				textField.autocorrectionType = .no
 			}
 			alert.addAction(
 				UIAlertAction(
 					title: "Set",
 					style: .default,
 					handler: { [weak alert] (_) in
-						let url = alert?.textFields?[0].text
-						guard let url else { return }
-						guard !url.isEmpty else { return }
-						self.showToast("url SET: \(url)")
-						self.customURL = url
+						let fields = (alert?.textFields ?? []).map { self.trimmedHost($0.text) }
+						guard fields.count == 3, !fields[0].isEmpty else {
+							self.showToast("CHAT HOST IS REQUIRED")
+							return
+						}
+						let base = fields[0]
+						let rest = fields[1].isEmpty ? base : fields[1]
+						guard base.hasPrefix("https://"), rest.hasPrefix("https://") else {
+							self.showToast("USE https:// (iOS blocks http)")
+							return
+						}
+						self.customPath = (base, rest, fields[2])
+						self.showToast("URL SET: \(self.chatURLDescription())")
 					}
 				)
 			)
 			alert.addAction(
 				UIAlertAction(
-					title: "Cancel",
-					style: .default,
+					title: "Clear (use server)",
+					style: .destructive,
 					handler: { _ in
-						optionMenu.dismiss(animated: true, completion: nil)
+						self.customPath = nil
+						self.showToast("URL CLEARED")
 					}
 				)
 			)
+			alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 			self.present(alert, animated: true, completion: nil)
+		}
+		let showConfigAction = UIAlertAction(title: NSLocalizedString("SHOW CONFIG", comment: ""), style: .default) { (action) in
+			let alert = UIAlertController(title: "Config", message: self.configDescription(), preferredStyle: .alert)
+			alert.addAction(UIAlertAction(title: "OK", style: .default))
+			alert.addAction(
+				UIAlertAction(
+					title: "Reset all",
+					style: .destructive,
+					handler: { _ in
+						self.customClientID = nil
+						self.serverType = nil
+						self.customPath = nil
+						self.userId = nil
+						self.showToast("CONFIG RESET")
+					}
+				)
+			)
+			self.present(alert, animated: true)
 		}
 		let setUserIdAction = UIAlertAction(title: NSLocalizedString("SET USER ID", comment: ""), style: .default) { (action) in
 			let alert = UIAlertController(title: "Set User ID", message: "Used as UserProfile.id on next INITIALIZE WEBVIEW (max 36 chars, empty = none)", preferredStyle: .alert)
@@ -264,6 +357,7 @@ final class MainViewController: UIViewController {
 			optionMenu.dismiss(animated: true, completion: nil)
 		}
 		optionMenu.addAction(initializeAction)
+		optionMenu.addAction(showConfigAction)
 		optionMenu.addAction(setClientIDAction)
 		optionMenu.addAction(setURL)
 		optionMenu.addAction(setUserIdAction)
@@ -328,25 +422,70 @@ final class MainViewController: UIViewController {
 	}
 
 	func initializeKodaBot() -> Bool {
-		let path = customURL.map {
-			KodaURL(base: $0, baseVersion: "", rest: $0, restVersion: "")
+		guard let clientID = customClientID ?? plistSettings.clientID else {
+			showToast("SET CLIENT ID FIRST")
+			return false
 		}
-		let plist = Bundle.main.object(forInfoDictionaryKey: "KodaBotsSDK") as? [String: Any]
-		let plistServer: KBServerType = (plist?["server"] as? String) == "STAGE" ? .stage : .release
+		let path = customPath.map {
+			KodaURL(base: $0.base, baseVersion: $0.version, rest: $0.rest, restVersion: $0.version)
+		}
 		let settings = KBSettings(
-			clientToken: customClientID ?? plist?["clientToken"] as? String ?? "",
-			server: serverType ?? plistServer,
+			clientToken: clientID,
+			server: serverType ?? plistSettings.server,
 			debugMessagesEnabled: true,
 			path: path,
 			webDebugEnabled: true
 		)
 		return KodaBotsSDK.shared.initialize(with: settings)
 	}
+
+	private func trimmedHost(_ text: String?) -> String {
+		var host = (text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+		while host.hasSuffix("/") { host.removeLast() }
+		return host
+	}
+
+	/// Mirrors how the SDK builds the chat URL (URLManager.mobileToken) so testers can see where the app connects.
+	private func chatURLDescription() -> String {
+		let token = customClientID ?? plistSettings.clientID ?? "<no token>"
+		if let customPath {
+			return customPath.version.isEmpty
+				? "\(customPath.base)/mobile/?token=\(token)"
+				: "\(customPath.base)/mobile/\(customPath.version)?token=\(token)"
+		}
+		let base = (serverType ?? plistSettings.server) == .stage ? "https://web.staging.koda.ai" : "https://web.eu-pl.koda.ai"
+		return "\(base)/mobile/v1?token=\(token)"
+	}
+
+	private func configDescription() -> String {
+		let server = serverType ?? plistSettings.server
+		return [
+			"Client ID: \(customClientID ?? plistSettings.clientID ?? "not set")",
+			"Server: \(server == .stage ? "stage" : "release")\(customPath != nil ? " (overridden by URL)" : "")",
+			"Chat host: \(customPath?.base ?? "default")",
+			"REST host: \(customPath?.rest ?? "default")",
+			"User ID: \(userId ?? "not set")",
+			"",
+			"Chat URL:",
+			chatURLDescription()
+		].joined(separator: "\n")
+	}
 }
 
 // MARK: - Constants (private)
 
 private enum K {
+	static let plistPlaceholder = "INSERT_YOUR_TOKEN_HERE"
+
+	enum Keys {
+		static let clientID = "KodaBotsSample.clientID"
+		static let server = "KodaBotsSample.server"
+		static let baseURL = "KodaBotsSample.baseURL"
+		static let restURL = "KodaBotsSample.restURL"
+		static let version = "KodaBotsSample.version"
+		static let userID = "KodaBotsSample.userId"
+	}
+
 	/// Round trip through readCache / saveCache, the same calls the chatbot webview makes.
 	static let cacheBridgeTestScript = """
 	const handlers = window.webkit.messageHandlers;
