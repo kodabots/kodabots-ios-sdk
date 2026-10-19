@@ -16,6 +16,10 @@ final class MainViewController: UIViewController {
 	private var customClientID: String?
 	private var customURL: String?
 	private var serverType: KBServerType?
+	private var userId: String? {
+		get { UserDefaults.standard.string(forKey: "KodaBotsSample.userId") }
+		set { UserDefaults.standard.set(newValue, forKey: "KodaBotsSample.userId") }
+	}
 
 	// MARK: - Properties
 
@@ -118,6 +122,26 @@ final class MainViewController: UIViewController {
 			)
 			self.present(alert, animated: true, completion: nil)
 		}
+		let setUserIdAction = UIAlertAction(title: NSLocalizedString("SET USER ID", comment: ""), style: .default) { (action) in
+			let alert = UIAlertController(title: "Set User ID", message: "Used as UserProfile.id on next INITIALIZE WEBVIEW (max 36 chars, empty = none)", preferredStyle: .alert)
+			alert.addTextField { (textField) in
+				textField.placeholder = "User ID"
+				textField.text = self.userId
+			}
+			alert.addAction(
+				UIAlertAction(
+					title: "Set",
+					style: .default,
+					handler: { [weak alert] (_) in
+						let userId = alert?.textFields?[0].text ?? ""
+						self.userId = userId.isEmpty ? nil : userId
+						self.showToast("USER ID SET: \(self.userId ?? "none")")
+					}
+				)
+			)
+			alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+			self.present(alert, animated: true, completion: nil)
+		}
 		let getUnreadCountAction = UIAlertAction(title: NSLocalizedString("GET UNREAD COUNT", comment: ""), style: .default){ (action) in
 			KodaBotsSDK.shared.getUnreadCount(callback: { response in
 				switch(response){
@@ -206,16 +230,51 @@ final class MainViewController: UIViewController {
 				self.showToast("INITIALIZE WEBVIEW")
 			}
 		}
+		let clearCacheAction = UIAlertAction(title: NSLocalizedString("CLEAR CACHE", comment: ""), style: .default){ (action) in
+			KodaBotsSDK.shared.clearCache()
+			self.showToast("CACHE CLEARED")
+		}
+		let closeWebviewAction = UIAlertAction(title: NSLocalizedString("CLOSE WEBVIEW", comment: ""), style: .default){ (action) in
+			self.closeWebview()
+		}
+		let showCacheAction = UIAlertAction(title: NSLocalizedString("SHOW CACHE", comment: ""), style: .default){ (action) in
+			// Debug only: reads SDK storage directly to show what the webview saved.
+			let cache = UserDefaults.standard.dictionary(forKey: "KEY_WEB_CACHE") as? [String: String] ?? [:]
+			print("KodaBotsSample -> Cache: \(cache)")
+			let message = cache.isEmpty
+				? "Cache is empty"
+				: cache.map { "\($0.key): \($0.value.prefix(200))" }.sorted().joined(separator: "\n\n")
+			let alert = UIAlertController(title: "Cache (\(cache.count))", message: message, preferredStyle: .alert)
+			alert.addAction(UIAlertAction(title: "OK", style: .default))
+			self.present(alert, animated: true)
+		}
+		let testCacheBridgeAction = UIAlertAction(title: NSLocalizedString("TEST CACHE BRIDGE", comment: ""), style: .default){ (action) in
+			guard let kodaBotsWebView = self.kodaBotsWebView else {
+				self.showToast("INITIALIZE WEBVIEW")
+				return
+			}
+			kodaBotsWebView.evaluateDebugJavaScript(K.cacheBridgeTestScript) { result in
+				print("KodaBotsSample -> Cache bridge test: \(result)")
+				let alert = UIAlertController(title: "Cache bridge test", message: result, preferredStyle: .alert)
+				alert.addAction(UIAlertAction(title: "OK", style: .default))
+				self.present(alert, animated: true)
+			}
+		}
 		let closeAction = UIAlertAction(title: NSLocalizedString("Close", comment: ""), style: .default) { (action) in
 			optionMenu.dismiss(animated: true, completion: nil)
 		}
 		optionMenu.addAction(initializeAction)
 		optionMenu.addAction(setClientIDAction)
 		optionMenu.addAction(setURL)
+		optionMenu.addAction(setUserIdAction)
 		optionMenu.addAction(getUnreadCountAction)
 		optionMenu.addAction(syncProfileAction)
 		optionMenu.addAction(sendBlockAction)
 		optionMenu.addAction(simulateAlertAction)
+		optionMenu.addAction(closeWebviewAction)
+		optionMenu.addAction(showCacheAction)
+		optionMenu.addAction(testCacheBridgeAction)
+		optionMenu.addAction(clearCacheAction)
 		optionMenu.addAction(closeAction)
 		present(optionMenu, animated: true, completion: nil)
 	}
@@ -230,10 +289,25 @@ final class MainViewController: UIViewController {
 		}
 	}
 
+	func closeWebview() {
+		guard let viewController = kodaBotsWebView else {
+			showToast("WEBVIEW NOT INITIALIZED")
+			return
+		}
+		viewController.willMove(toParent: nil)
+		viewController.view.removeFromSuperview()
+		viewController.removeFromParent()
+		kodaBotsWebView = nil
+	}
+
 	func initializeWebview(){
 		DispatchQueue.main.async {
+			if self.kodaBotsWebView != nil {
+				self.closeWebview()
+			}
 			guard self.initializeKodaBot() else { return }
 			let config = KodaBotsConfig()
+			config.userProfile.id = self.userId
 			config.progressConfig = KodaBotsProgressConfig()
 			config.progressConfig?.backgroundColor = UIColor.white
 			config.progressConfig?.progressColor = UIColor.red
@@ -254,31 +328,38 @@ final class MainViewController: UIViewController {
 	}
 
 	func initializeKodaBot() -> Bool {
-		guard shouldInitializeWithCustomSettings() else {
-			guard KodaBotsSDK.shared.initialize() else {
-				print("KodaBotsSDK - NOT INITILIZED")
-				return false
-			}
-			return true
+		let path = customURL.map {
+			KodaURL(base: $0, baseVersion: "", rest: $0, restVersion: "")
 		}
-		let path = KodaURL(
-			base: customURL ?? "",
-			baseVersion: "",
-			rest: customURL ?? "",
-			restVersion: ""
-		)
+		let plist = Bundle.main.object(forInfoDictionaryKey: "KodaBotsSDK") as? [String: Any]
+		let plistServer: KBServerType = (plist?["server"] as? String) == "STAGE" ? .stage : .release
 		let settings = KBSettings(
-			clientToken: customClientID ?? "",
-			server: serverType ?? .release,
+			clientToken: customClientID ?? plist?["clientToken"] as? String ?? "",
+			server: serverType ?? plistServer,
 			debugMessagesEnabled: true,
-			path: path
+			path: path,
+			webDebugEnabled: true
 		)
 		return KodaBotsSDK.shared.initialize(with: settings)
 	}
+}
 
-	private func shouldInitializeWithCustomSettings() -> Bool {
-		let isClientAndServerSet = (customClientID != nil && serverType != nil && ((customClientID?.isEmpty) == nil))
-		let isURLSet = customURL != nil
-		return isClientAndServerSet || isURLSet
-	}
+// MARK: - Constants (private)
+
+private enum K {
+	/// Round trip through readCache / saveCache, the same calls the chatbot webview makes.
+	static let cacheBridgeTestScript = """
+	const handlers = window.webkit.messageHandlers;
+	const key = "kb_debug_test";
+	const value = JSON.stringify({ ts: Date.now() });
+	const saved = await handlers.saveCache.postMessage({ key, value });
+	const read = await handlers.readCache.postMessage({ key });
+	await handlers.saveCache.postMessage({ key, value: null });
+	const afterDelete = await handlers.readCache.postMessage({ key });
+	let invalidValue;
+	try { await handlers.saveCache.postMessage({ key, value: 123 }); invalidValue = "accepted"; }
+	catch (error) { invalidValue = "rejected: " + error.message; }
+	const ok = saved === true && read === value && afterDelete === null && invalidValue.startsWith("rejected");
+	return JSON.stringify({ ok, read, afterDelete, invalidValue });
+	"""
 }

@@ -53,6 +53,14 @@ public final class KodaBotsSDK: NSObject {
 		isInitialized = false
 	}
 
+	/**
+	 * Method used to clear conversation cache saved by the chatbot webview (e.g. on user logout).
+	 * Next webview opened after this call will start a new conversation.
+	 */
+	public func clearCache() {
+		KodaBotsPreferences.shared.clearCache()
+	}
+
 	internal func gatherPhoneData(userProfile:UserProfile?)-> UserProfile? {
 		let webview = WKWebView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
 		let userAgentString = webview.value(forKey: "userAgent") as? String

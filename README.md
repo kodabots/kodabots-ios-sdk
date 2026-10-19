@@ -11,7 +11,7 @@ To install KodaBots using Swift Package Manager you can follow the [tutorial pub
 or you can add the following dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/kodabots/kodabots-ios-sdk.git", from: "1.5.0")
+.package(url: "https://github.com/kodabots/kodabots-ios-sdk.git", from: "1.6.0")
 ```
 
 and add it to your target like this:
@@ -72,10 +72,43 @@ When `path` is `nil` (default), the SDK uses its built-in URLs based on `server`
 ### Debugging
 From version `1.5.0` debug messages from package are disabled, to enable use ```KodaBotsSDK.shared.initialize(debugMessagesEnabled: true)``` or set it on ```KBSettings```.
 
+### Web debugging
+Set `webDebugEnabled: true` on ```KBSettings``` to log the webview console, JS errors, `localStorage`/`sessionStorage` access and JS ↔ native messages to the Xcode console (prefixed with `🌐`). It also makes the webview inspectable in Safari → Develop (iOS 16.4+) and enables ```KodaBotsWebViewViewController.evaluateDebugJavaScript```. Use it in debug builds only.
+
 ## Methods overview
 - ```getUnreadCount``` is available without initialization of webview, inside ```KodaBotsSDK```, returns unread count of messages
 - ```sendBlock``` is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
 - ```syncUserProfile``` is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
+- ```clearCache``` is available without initialization of webview, inside ```KodaBotsSDK```, removes conversation cache saved by the webview
+
+## User ID
+
+From version `1.6.0` you can pass a stable user identifier from your app (max 36 characters) as `UserProfile.id`. The chatbot then uses it as the conversation user ID instead of generating a random one, so the same app user is recognized as the same chatbot user on every launch and device.
+
+```swift
+let config = KodaBotsConfig()
+config.userProfile.id = currentUser.id
+```
+
+Note that the visible conversation history is stored on the device by the webview, so it is not restored on a new device or after the webview storage is cleared.
+
+## Conversation cache
+
+From version `1.6.0` the chatbot webview can persist its conversation session in the SDK (`UserDefaults`), so the conversation survives closing the chat screen and restarting the app. The SDK stores plain strings under keys provided by the webview — serializing (e.g. to JSON) is the webview's responsibility.
+
+The webview uses two message handlers, both returning a `Promise`:
+
+```js
+// returns string or null
+const session = await window.webkit.messageHandlers.readCache.postMessage({ key: "session" });
+
+// value must be a string; null removes the entry
+await window.webkit.messageHandlers.saveCache.postMessage({ key: "session", value: JSON.stringify(data) });
+```
+
+The cache is shared by all chatbot screens in the app and is not cleared automatically. Call `KodaBotsSDK.shared.clearCache()` when the user logs out, so the next user starts a new conversation.
+
+Version `1.6.0` raises the minimum deployment target to iOS 14.
 
 ## External Dependencies
 KodaBots use  [lottie-ios](https://github.com/airbnb/lottie-ios) for animation. There is also an option to set custom loading using lottie. 

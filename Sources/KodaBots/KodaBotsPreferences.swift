@@ -25,10 +25,29 @@ extension KodaBotsPreferences {
     func getUserId() -> String? {
         return userPreferences.string(forKey: K.userID)
     }
+
+    func setCache(_ value: String?, forKey key: String) {
+        var cache = getCache()
+        cache[key] = value
+        userPreferences.set(cache, forKey: K.webCache)
+    }
+
+    func getCache(forKey key: String) -> String? {
+        return getCache()[key]
+    }
+
+    func clearCache() {
+        userPreferences.removeObject(forKey: K.webCache)
+    }
+
+    private func getCache() -> [String: String] {
+        return userPreferences.dictionary(forKey: K.webCache) as? [String: String] ?? [:]
+    }
 }
 
 // MARK: - Cosntants (private)
 
 private enum K {
     static let userID = "KEY_USER_ID"
+    static let webCache = "KEY_WEB_CACHE"
 }

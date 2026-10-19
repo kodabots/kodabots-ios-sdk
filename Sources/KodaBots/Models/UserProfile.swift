@@ -1,6 +1,9 @@
 import Foundation
 
 public class UserProfile: NSObject, Codable {
+    /// Stable user identifier from the host app (max 36 characters).
+    /// When set, the chatbot uses it as the conversation user ID instead of generating a random one.
+    public var id: String?
     public var firstName: String?
     public var lastName: String?
     public var email: String?
@@ -13,6 +16,7 @@ public class UserProfile: NSObject, Codable {
     public var customParameters: [String:String] = [:]
 
     enum CodingKeys: String, CodingKey {
+        case id = "id"
         case firstName = "first_name"
         case lastName = "last_name"
         case email = "email"

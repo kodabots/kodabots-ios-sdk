@@ -7,7 +7,7 @@ let package = Package(
     name: "koda-bots-sdk",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v13)
+        .iOS(.v14)
     ],
     products: [
         .library(

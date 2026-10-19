@@ -31,6 +31,11 @@ public class KodaBotsWebViewViewController: UIViewController {
 
 	// MARK: - Lifecycle
 
+	deinit {
+		webView?.configuration.userContentController.removeAllScriptMessageHandlers()
+		printIfNeeded(message: "KodaBotsWebViewViewController deinit", priority: .info)
+	}
+
 	public override func viewDidLoad() {
 		super.viewDidLoad()
 		setup()
@@ -101,8 +106,8 @@ extension KodaBotsWebViewViewController {
 	}
 
 	private func setupWentWrongTask() {
-		wentWrongTask = DispatchWorkItem {
-			self.showWentWrong()
+		wentWrongTask = DispatchWorkItem { [weak self] in
+			self?.showWentWrong()
 		}
 	}
 
@@ -196,10 +201,15 @@ extension KodaBotsWebViewViewController {
 	}
 
 	private func setupWebView() {
-		webView.configuration.userContentController.add(self, name: "onReady")
-		webView.configuration.userContentController.add(self, name: "onStatEvent")
-		webView.configuration.userContentController.add(self, name: "onError")
-		webView.configuration.userContentController.add(self, name: "onLinkClicked")
+		let handler = WeakScriptMessageHandler(target: self)
+		let contentController = webView.configuration.userContentController
+		contentController.add(handler, name: "onReady")
+		contentController.add(handler, name: "onStatEvent")
+		contentController.add(handler, name: "onError")
+		contentController.add(handler, name: "onLinkClicked")
+		contentController.addScriptMessageHandler(handler, contentWorld: .page, name: "readCache")
+		contentController.addScriptMessageHandler(handler, contentWorld: .page, name: "saveCache")
+		setupWebDebug(handler: handler)
 	}
 }
 
@@ -346,6 +356,10 @@ extension KodaBotsWebViewViewController {
 extension KodaBotsWebViewViewController: WKScriptMessageHandler {
 
 	public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+		if message.name == Self.webDebugHandlerName, let body = message.body as? [String : Any?] {
+			handleWebDebugMessage(body)
+			return
+		}
 		printIfNeeded(message: "received '\(message.name)' with parameters \(message.body)", priority: .info)
 		if let body = message.body as? [String : Any?] {
 			switch message.name {
@@ -394,6 +408,51 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandler {
 			}
 		} else {
 			printIfNeeded(message: "body must be a JSON object, and is: \(message.body)", priority: .warning)
+		}
+	}
+}
+
+// MARK: - WKScriptMessageHandlerWithReply
+
+extension KodaBotsWebViewViewController: WKScriptMessageHandlerWithReply {
+
+	public func userContentController(
+		_ userContentController: WKUserContentController,
+		didReceive message: WKScriptMessage,
+		replyHandler: @escaping (Any?, String?) -> Void
+	) {
+		printIfNeeded(message: "received '\(message.name)' with parameters \(message.body)", priority: .info)
+		guard
+			let body = message.body as? [String: Any],
+			let key = body["key"] as? String,
+			!key.isEmpty
+		else {
+			printIfNeeded(message: "property 'key' missing", priority: .warning)
+			replyHandler(nil, "property 'key' missing")
+			return
+		}
+		switch message.name {
+		case "readCache":
+			let value = KodaBotsPreferences.shared.getCache(forKey: key)
+			printIfNeeded(message: "readCache '\(key)' -> \(value ?? "nil")", priority: .info)
+			// NSNull is bridged to JS `null`; nil would resolve the Promise with `undefined`.
+			replyHandler(value ?? NSNull(), nil)
+		case "saveCache":
+			let value = body["value"]
+			if value == nil || value is NSNull {
+				KodaBotsPreferences.shared.setCache(nil, forKey: key)
+			} else if let value = value as? String {
+				KodaBotsPreferences.shared.setCache(value, forKey: key)
+			} else {
+				printIfNeeded(message: "property 'value' must be a string or null", priority: .warning)
+				replyHandler(nil, "property 'value' must be a string or null")
+				return
+			}
+			printIfNeeded(message: "saveCache '\(key)' saved", priority: .info)
+			replyHandler(true, nil)
+		default:
+			printIfNeeded(message: "unhandled message '\(message.name)'", priority: .warning)
+			replyHandler(nil, "unhandled message '\(message.name)'")
 		}
 	}
 }
@@ -458,6 +517,35 @@ extension WKWebView {
 		printIfNeeded(message: "Calling Javascript: \(data)", priority: .info)
 		let requestString = "\(data)"
 		self.evaluateJavaScript(requestString)
+	}
+}
+
+// MARK: - WeakScriptMessageHandler (private)
+
+/// WKUserContentController retains its handlers strongly, so registering the view controller
+/// directly would create a retain cycle (controller → webView → contentController → controller).
+private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithReply {
+
+	private weak var target: KodaBotsWebViewViewController?
+
+	init(target: KodaBotsWebViewViewController) {
+		self.target = target
+	}
+
+	func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+		target?.userContentController(userContentController, didReceive: message)
+	}
+
+	func userContentController(
+		_ userContentController: WKUserContentController,
+		didReceive message: WKScriptMessage,
+		replyHandler: @escaping (Any?, String?) -> Void
+	) {
+		guard let target else {
+			replyHandler(nil, "KodaBots webview has been released")
+			return
+		}
+		target.userContentController(userContentController, didReceive: message, replyHandler: replyHandler)
 	}
 }
 
