@@ -79,7 +79,7 @@ Set `webDebugEnabled: true` on ```KBSettings``` to log the webview console, JS e
 - ```getUnreadCount``` is available without initialization of webview, inside ```KodaBotsSDK```, returns unread count of messages
 - ```sendBlock``` is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
 - ```syncUserProfile``` is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
-- ```clearCache``` is available without initialization of webview, inside ```KodaBotsSDK```, removes conversation cache saved by the webview
+- ```clearCache``` is available without initialization of webview, inside ```KodaBotsSDK```, removes the saved conversation (SDK cache and the chatbot's webview storage)
 
 ## User ID
 
@@ -106,7 +106,9 @@ const session = await window.webkit.messageHandlers.readCache.postMessage({ key:
 await window.webkit.messageHandlers.saveCache.postMessage({ key: "session", value: JSON.stringify(data) });
 ```
 
-The cache is shared by all chatbot screens in the app and is not cleared automatically. Call `KodaBotsSDK.shared.clearCache()` when the user logs out, so the next user starts a new conversation.
+Only the chatbot page itself (main frame on the configured chat host) can use these handlers; calls from iframes or other origins are rejected.
+
+The cache is shared by all chatbot screens in the app and is not cleared automatically. Call `KodaBotsSDK.shared.clearCache()` when the user logs out, while no chatbot screen is displayed, so the next user starts a new conversation. It removes both the SDK cache and the chatbot's webview storage.
 
 Version `1.6.0` raises the minimum deployment target to iOS 14.
 

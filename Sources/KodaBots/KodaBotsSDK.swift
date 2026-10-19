@@ -54,11 +54,38 @@ public final class KodaBotsSDK: NSObject {
 	}
 
 	/**
-	 * Method used to clear conversation cache saved by the chatbot webview (e.g. on user logout).
+	 * Method used to clear the conversation saved by the chatbot (e.g. on user logout):
+	 * the SDK cache and the chatbot's webview storage (localStorage, sessionStorage, IndexedDB).
 	 * Next webview opened after this call will start a new conversation.
+	 * Call it when no chatbot view controller is displayed, as an open webview keeps its conversation in memory.
+	 *
+	 * parameter completion: Called on the main thread when the webview storage has been removed
 	 */
-	public func clearCache() {
+	public func clearCache(completion: (() -> Void)? = nil) {
 		KodaBotsPreferences.shared.clearCache()
+		DispatchQueue.main.async {
+			guard let chatHost = URL(string: URLManager.shared.base)?.host?.lowercased() else {
+				completion?()
+				return
+			}
+			let dataStore = WKWebsiteDataStore.default()
+			let types: Set<String> = [
+				WKWebsiteDataTypeLocalStorage,
+				WKWebsiteDataTypeSessionStorage,
+				WKWebsiteDataTypeIndexedDBDatabases
+			]
+			dataStore.fetchDataRecords(ofTypes: types) { records in
+				// Record display names are registrable domains (e.g. "koda.ai" for "web.staging.koda.ai").
+				let chatRecords = records.filter { record in
+					let domain = record.displayName.lowercased()
+					return chatHost == domain || chatHost.hasSuffix("." + domain)
+				}
+				printIfNeeded(message: "clearCache: removing webview storage for \(chatRecords.map(\.displayName))", priority: .info)
+				dataStore.removeData(ofTypes: types, for: chatRecords) {
+					completion?()
+				}
+			}
+		}
 	}
 
 	internal func gatherPhoneData(userProfile:UserProfile?)-> UserProfile? {

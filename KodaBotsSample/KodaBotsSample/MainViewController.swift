@@ -324,8 +324,12 @@ final class MainViewController: UIViewController {
 			}
 		}
 		let clearCacheAction = UIAlertAction(title: NSLocalizedString("CLEAR CACHE", comment: ""), style: .default){ (action) in
-			KodaBotsSDK.shared.clearCache()
-			self.showToast("CACHE CLEARED")
+			if self.kodaBotsWebView != nil {
+				self.closeWebview()
+			}
+			KodaBotsSDK.shared.clearCache {
+				self.showToast("CACHE CLEARED")
+			}
 		}
 		let closeWebviewAction = UIAlertAction(title: NSLocalizedString("CLOSE WEBVIEW", comment: ""), style: .default){ (action) in
 			self.closeWebview()
@@ -498,7 +502,26 @@ private enum K {
 	let invalidValue;
 	try { await handlers.saveCache.postMessage({ key, value: 123 }); invalidValue = "accepted"; }
 	catch (error) { invalidValue = "rejected: " + error.message; }
-	const ok = saved === true && read === value && afterDelete === null && invalidValue.startsWith("rejected");
-	return JSON.stringify({ ok, read, afterDelete, invalidValue });
+	// Iframes must not get access to the cache.
+	const iframeAccess = await new Promise((resolve) => {
+		const frame = document.createElement("iframe");
+		frame.style.display = "none";
+		const onMessage = (event) => {
+			if (!event.data || !event.data.kbIframeTest) { return; }
+			window.removeEventListener("message", onMessage);
+			frame.remove();
+			resolve(event.data.result);
+		};
+		window.addEventListener("message", onMessage);
+		const tag = "script";
+		frame.srcdoc = "<" + tag + ">window.webkit.messageHandlers.readCache.postMessage({ key: 'kb_debug_test' })"
+			+ ".then(() => parent.postMessage({ kbIframeTest: true, result: 'accepted' }, '*'),"
+			+ " (error) => parent.postMessage({ kbIframeTest: true, result: 'rejected: ' + error.message }, '*'))</" + tag + ">";
+		document.body.appendChild(frame);
+		setTimeout(() => resolve("timeout"), 3000);
+	});
+	const ok = saved === true && read === value && afterDelete === null
+		&& invalidValue.startsWith("rejected") && iframeAccess.startsWith("rejected");
+	return JSON.stringify({ ok, read, afterDelete, invalidValue, iframeAccess });
 	"""
 }

@@ -422,6 +422,15 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandlerWithReply {
 		replyHandler: @escaping (Any?, String?) -> Void
 	) {
 		printIfNeeded(message: "received '\(message.name)' with parameters \(message.body)", priority: .info)
+		guard isTrustedCacheMessage(message) else {
+			let origin = message.frameInfo.securityOrigin
+			printIfNeeded(
+				message: "'\(message.name)' rejected from \(origin.protocol)://\(origin.host) (main frame: \(message.frameInfo.isMainFrame))",
+				priority: .warning
+			)
+			replyHandler(nil, "origin not allowed")
+			return
+		}
 		guard
 			let body = message.body as? [String: Any],
 			let key = body["key"] as? String,
@@ -454,6 +463,20 @@ extension KodaBotsWebViewViewController: WKScriptMessageHandlerWithReply {
 			printIfNeeded(message: "unhandled message '\(message.name)'", priority: .warning)
 			replyHandler(nil, "unhandled message '\(message.name)'")
 		}
+	}
+}
+
+extension KodaBotsWebViewViewController {
+	/// The cache holds the user's chat session, so only the chatbot page itself
+	/// (main frame on the configured chat host) may read or write it, never iframes or other origins.
+	private func isTrustedCacheMessage(_ message: WKScriptMessage) -> Bool {
+		guard
+			message.frameInfo.isMainFrame,
+			let chatURL = URL(string: URLManager.shared.base),
+			let chatHost = chatURL.host?.lowercased()
+		else { return false }
+		let origin = message.frameInfo.securityOrigin
+		return origin.host.lowercased() == chatHost && origin.protocol == (chatURL.scheme ?? "https")
 	}
 }
 
