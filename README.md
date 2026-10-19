@@ -1,20 +1,25 @@
-# Koda Bots SDK(SPM)
+# Koda Bots SDK (SPM)
 ![SwiftPM](https://img.shields.io/badge/SPM-supported-DE5C43.svg?style=flat)
 
-This repo provides Swift Package Manager support for [KodaBotsSDK](https://github.com/kodabots/kodabots-ios-sdk)
+Swift Package Manager version of [KodaBotsSDK](https://github.com/kodabots/kodabots-ios-sdk). It shows the KODA chatbot in your iOS app.
 
-## Installation guide
-To install KodaBots using Swift Package Manager you can follow the [tutorial published by Apple](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) using the URL for this repo with the current version:
-1. In Xcode, select “File” → “Add Packages...”
-1. Enter https://github.com/kodabots/kodabots-ios-sdk.git
+## Requirements
 
-or you can add the following dependency to your `Package.swift`:
+- iOS 14 or newer (since `1.6.0`; older versions support iOS 13)
+
+## Installation
+
+In Xcode: **File → Add Packages…** and enter:
+
+```
+https://github.com/kodabots/kodabots-ios-sdk.git
+```
+
+Or add it to `Package.swift`:
 
 ```swift
 .package(url: "https://github.com/kodabots/kodabots-ios-sdk.git", from: "1.6.0")
 ```
-
-and add it to your target like this:
 
 ```swift
 dependencies: [
@@ -22,98 +27,120 @@ dependencies: [
 ]
 ```
 
-### Configuration `info.plist`
-- Add entry into your `info.plist` as dictionary, add ```clientToken``` and ```server``` keys with values (for server: "RELEASE")
-- Add ```Privacy - Microphone Usage Description``` with description into your `info.plist`, only when you use audio feature (not available in `1.0.X` releases)
-- Add ```Privacy - Camera Usage Description``` with description into your `info.plist`
-- Add ```Privacy - Photo Library Usage Description``` with description into your `info.plist`
+## Info.plist
 
-## Usage guide
-- Import `KodaBots`
-- Invoke ```KodaBotsSDK.shared.initialize()```
-- If method returned true, you can then call ```KodaBotsSDK.shared.generateViewController(config:KodaBotsConfig?, callbacks:((KodaBotsCallbacks)->Void)?)``` to obtain ViewController which you can insert into your custom view or start as separate view controller
+Add these privacy descriptions:
+- `Privacy - Camera Usage Description`
+- `Privacy - Photo Library Usage Description`
+- `Privacy - Microphone Usage Description` (only if you use audio)
 
-### Initialize without info.plist
+If you configure the SDK in `Info.plist` (see below), also add a `KodaBotsSDK` dictionary with:
+- `clientToken` – your bot token
+- `server` – `RELEASE` or `STAGE`
 
-From version `1.5.0` it's possible to initialize KodaBots SDK without info.plist declaration. To initialize use ```KodaBotsSDK.shared.initialize(with settings: KBSettings)``` where ```KBSettings``` includes informations: ```clientToken```, ```server```, ```debugMessagesEnabled``` and ```path```.
+## Quick start
 
 ```swift
-let settings = KBSettings(
-    clientToken: "your_token",
-    server: .release,
-    debugMessagesEnabled: false
-)
+import KodaBots
 
-KodaBotsSDK.shared.initialize(with: settings)
+// 1. Initialize once, e.g. at app start
+let settings = KBSettings(clientToken: "your_token", server: .release)
+_ = KodaBotsSDK.shared.initialize(with: settings)
+
+// 2. Create the chat screen and show it
+let config = KodaBotsConfig()
+if let chat = KodaBotsSDK.shared.generateViewController(config: config, callbacks: { event in
+    print(event)
+}) {
+    present(chat, animated: true)
+}
 ```
 
-### Custom hosts
+You can also initialize from `Info.plist` with `KodaBotsSDK.shared.initialize()`. It returns `false` if the `KodaBotsSDK` entry is missing.
 
-From version `1.5.3` it's possible to override the default chatbot and REST API hosts by passing a `path` (`KodaURL`) to `KBSettings`. This is useful for pointing the SDK at a staging environment or a white-label deployment. The override is applied globally for the SDK's entire lifetime — set it once at initialization, before any webview or REST call is made.
+## Keeping the conversation
+
+From `1.6.0`:
+
+- **The conversation stays** after the user closes the chat screen or restarts the app.
+- **On logout, call `clearCache()`.** Otherwise the next user sees the previous conversation. Call it when the chat screen is closed.
 
 ```swift
-let customPath = KodaURL(
-    base: "https://web.staging.example.com",
-    baseVersion: "v1",
-    rest: "https://bot.staging.example.com",
-    restVersion: "v1"
-)
-
-let settings = KBSettings(
-    clientToken: "your_token",
-    path: customPath
-)
-
-KodaBotsSDK.shared.initialize(with: settings)
+KodaBotsSDK.shared.clearCache {
+    // conversation removed
+}
 ```
 
-When `path` is `nil` (default), the SDK uses its built-in URLs based on `server` (`.release` or `.stage`).
+### Same user across devices
 
-### Debugging
-From version `1.5.0` debug messages from package are disabled, to enable use ```KodaBotsSDK.shared.initialize(debugMessagesEnabled: true)``` or set it on ```KBSettings```.
-
-### Web debugging
-Set `webDebugEnabled: true` on ```KBSettings``` to log the webview console, JS errors, `localStorage`/`sessionStorage` access and JS ↔ native messages to the Xcode console (prefixed with `🌐`). It also makes the webview inspectable in Safari → Develop (iOS 16.4+) and enables ```KodaBotsWebViewViewController.evaluateDebugJavaScript```. Use it in debug builds only.
-
-## Methods overview
-- ```getUnreadCount``` is available without initialization of webview, inside ```KodaBotsSDK```, returns unread count of messages
-- ```sendBlock``` is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
-- ```syncUserProfile``` is available after initialization of webview, inside ```KodaBotsWebViewViewController```, returns true if send to webview, false if not initialized
-- ```clearCache``` is available without initialization of webview, inside ```KodaBotsSDK```, removes the saved conversation (SDK cache and the chatbot's webview storage)
-
-## User ID
-
-From version `1.6.0` you can pass a stable user identifier from your app (max 36 characters) as `UserProfile.id`. The chatbot then uses it as the conversation user ID instead of generating a random one, so the same app user is recognized as the same chatbot user on every launch and device.
+Pass your own user ID (max 36 characters). The chatbot will treat it as the same user every time, also on a new device or after a reinstall.
 
 ```swift
 let config = KodaBotsConfig()
 config.userProfile.id = currentUser.id
 ```
 
-Note that the visible conversation history is stored on the device by the webview, so it is not restored on a new device or after the webview storage is cleared.
+The message history on the screen is stored on the device, so it is **not** shown on a new device.
 
-## Conversation cache
+### For the chatbot web page
 
-From version `1.6.0` the chatbot webview can persist its conversation session in the SDK (`UserDefaults`), so the conversation survives closing the chat screen and restarting the app. The SDK stores plain strings under keys provided by the webview — serializing (e.g. to JSON) is the webview's responsibility.
-
-The webview uses two message handlers, both returning a `Promise`:
+The SDK gives the chatbot page two functions to save text (e.g. JSON) on the device. Both return a `Promise`.
 
 ```js
-// returns string or null
+// read: returns a string or null
 const session = await window.webkit.messageHandlers.readCache.postMessage({ key: "session" });
 
-// value must be a string; null removes the entry
+// save: value must be a string; null deletes the key
 await window.webkit.messageHandlers.saveCache.postMessage({ key: "session", value: JSON.stringify(data) });
 ```
 
-Only the chatbot page itself (main frame on the configured chat host) can use these handlers; calls from iframes or other origins are rejected.
+Only the chatbot page itself can use them. Calls from iframes or other websites are rejected.
 
-The cache is shared by all chatbot screens in the app and is not cleared automatically. Call `KodaBotsSDK.shared.clearCache()` when the user logs out, while no chatbot screen is displayed, so the next user starts a new conversation. It removes both the SDK cache and the chatbot's webview storage.
+## Settings (`KBSettings`)
 
-Version `1.6.0` raises the minimum deployment target to iOS 14.
+| Setting | What it does | Default |
+|---|---|---|
+| `clientToken` | Your bot token | `""` |
+| `server` | `.release` or `.stage` | `.release` |
+| `path` | Your own hosts (see below) | `nil` |
+| `debugMessagesEnabled` | SDK logs in the Xcode console | `false` |
+| `webDebugEnabled` | Chat page logs and Safari Web Inspector (see below) | `false` |
 
-## External Dependencies
-KodaBots use  [lottie-ios](https://github.com/airbnb/lottie-ios) for animation. There is also an option to set custom loading using lottie. 
+### Custom hosts
 
-*Default loader: https://lottiefiles.com/36219-loader
-Thanks to Sinan Özkök, creator of loader
+Use this to connect to another environment. Set it once, when you initialize the SDK.
+
+```swift
+let path = KodaURL(
+    base: "https://web.staging.example.com",   // chat page
+    baseVersion: "v1",
+    rest: "https://bot.staging.example.com",   // API
+    restVersion: "v1"
+)
+_ = KodaBotsSDK.shared.initialize(with: KBSettings(clientToken: "your_token", path: path))
+```
+
+Without `path`, the SDK uses its own hosts for `server`.
+
+### Debugging
+
+- `debugMessagesEnabled: true` – shows SDK logs in the Xcode console.
+- `webDebugEnabled: true` – also shows what happens inside the chat page (console, errors, saved data, messages to the app), marked with `🌐`. You can inspect the page in Safari → Develop (iOS 16.4+).
+
+Use both only in debug builds. Do not ship them in production.
+
+## Methods
+
+In `KodaBotsSDK` (no chat screen needed):
+- `getUnreadCount` – number of unread messages
+- `clearCache` – deletes the saved conversation
+
+In `KodaBotsWebViewViewController` (chat screen must be loaded, return `false` otherwise):
+- `sendBlock` – opens a given conversation block
+- `syncUserProfile` – updates user data in the chat
+
+## Dependencies
+
+[lottie-ios](https://github.com/airbnb/lottie-ios) is used for the loading animation. You can set your own Lottie animation in `KodaBotsConfig`.
+
+Default loader: https://lottiefiles.com/36219-loader – thanks to Sinan Özkök.
